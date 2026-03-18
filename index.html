@@ -138,16 +138,16 @@
         <button class="modal-close" id="modalClose">✕</button>
       </div>
       <div class="modal-body">
-        <p class="modal-desc">Enter your Anthropic API key to enable the AI tutor. Your key is stored only in your browser (localStorage) and never sent anywhere except directly to Anthropic's API.</p>
-        <label class="field-label">Anthropic API Key</label>
-        <input type="password" class="api-input" id="apiKeyInput" placeholder="sk-ant-...">
+        <p class="modal-desc">Enter your Google Gemini API key to enable the AI tutor. Your key is stored only in your browser (localStorage) and never sent anywhere except directly to Google's API.</p>
+        <label class="field-label">Google Gemini API Key</label>
+        <input type="password" class="api-input" id="apiKeyInput" placeholder="AIza...">
         <div class="modal-actions">
           <button class="action-btn primary" id="saveApiKey">Save Key</button>
           <button class="action-btn secondary" id="clearApiKey">Clear Key</button>
         </div>
         <div class="api-status" id="apiStatus"></div>
         <div class="modal-note">
-          <strong>Privacy:</strong> Your API key stays in your browser. This app makes calls directly to <code>api.anthropic.com</code> from your browser. Get a key at <a href="https://console.anthropic.com" target="_blank">console.anthropic.com</a>.
+          <strong>Free tier:</strong> Gemini API has a generous free tier — no credit card needed. Get a key at <a href="https://aistudio.google.com/app/apikey" target="_blank">aistudio.google.com</a>. Your key stays in your browser and goes only to <code>generativelanguage.googleapis.com</code>.
         </div>
       </div>
     </div>

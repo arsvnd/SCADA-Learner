@@ -1,8 +1,48 @@
 // ============================================================
-// SCADA/IIoT Learning App — Main Application
+// SCADA/IIoT Learning App — Main Application (Gemini API)
 // ============================================================
 
-const ANTHROPIC_API = 'https://api.anthropic.com/v1/messages';
+const GEMINI_MODEL = 'gemini-2.0-flash';
+function geminiUrl(key) {
+  return `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${key}`;
+}
+
+async function callGemini(apiKey, systemPrompt, userMessage, history = []) {
+  // Build contents array: system turn + history + new user message
+  const contents = [];
+
+  // Gemini doesn't have a system role — prepend as first user/model exchange
+  contents.push({ role: 'user', parts: [{ text: systemPrompt }] });
+  contents.push({ role: 'model', parts: [{ text: 'Understood. I am ready to help.' }] });
+
+  // Add conversation history (already in {role, content} format)
+  for (const msg of history) {
+    contents.push({
+      role: msg.role === 'assistant' ? 'model' : 'user',
+      parts: [{ text: msg.content }]
+    });
+  }
+
+  // Add current user message
+  contents.push({ role: 'user', parts: [{ text: userMessage }] });
+
+  const response = await fetch(geminiUrl(apiKey), {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      contents,
+      generationConfig: { maxOutputTokens: 2500, temperature: 0.7 }
+    })
+  });
+
+  if (!response.ok) {
+    const err = await response.json();
+    throw new Error(err.error?.message || `Gemini API error ${response.status}`);
+  }
+
+  const data = await response.json();
+  return data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+}
 
 // ── State ────────────────────────────────────────────────────
 const state = {
@@ -334,28 +374,7 @@ async function loadNotes() {
   const prompt = buildNotesPrompt(mod, dayData, phase);
 
   try {
-    const response = await fetch(ANTHROPIC_API, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': state.apiKey,
-        'anthropic-version': '2023-06-01',
-        'anthropic-dangerous-direct-browser-access': 'true'
-      },
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
-        max_tokens: 2500,
-        messages: [{ role: 'user', content: prompt }]
-      })
-    });
-
-    if (!response.ok) {
-      const err = await response.json();
-      throw new Error(err.error?.message || `API error ${response.status}`);
-    }
-
-    const data = await response.json();
-    const text = data.content.find(b => b.type === 'text')?.text || '';
+    const text = await callGemini(state.apiKey, 'You are an expert SCADA/IIoT instructor.', prompt);
     renderNotes(text, phase);
 
     state.notesLoaded = true;
@@ -528,29 +547,12 @@ TUTOR GUIDELINES:
   state.chatHistory.push({ role: 'user', content: userMessage });
 
   try {
-    const response = await fetch(ANTHROPIC_API, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': state.apiKey,
-        'anthropic-version': '2023-06-01',
-        'anthropic-dangerous-direct-browser-access': 'true'
-      },
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
-        max_tokens: 1500,
-        system: systemPrompt,
-        messages: state.chatHistory.slice(-10) // keep last 10 messages
-      })
-    });
-
-    if (!response.ok) {
-      const err = await response.json();
-      throw new Error(err.error?.message || `API error ${response.status}`);
-    }
-
-    const data = await response.json();
-    const aiText = data.content.find(b => b.type === 'text')?.text || '';
+    const aiText = await callGemini(
+      state.apiKey,
+      systemPrompt,
+      userMessage,
+      state.chatHistory.slice(-10, -1) // history without the message we just pushed
+    );
 
     state.chatHistory.push({ role: 'assistant', content: aiText });
 
