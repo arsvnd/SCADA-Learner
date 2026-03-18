@@ -3,153 +3,90 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>SCADA & IIoT Mastery — Ash's Study Platform</title>
+  <title>SCADA & IIoT — Study</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;1,400&family=Inter:wght@400;500&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-  <!-- Sidebar -->
-  <aside class="sidebar" id="sidebar">
-    <div class="sidebar-header">
-      <div class="logo">
-        <span class="logo-icon">⬡</span>
-        <span class="logo-text">SCADA/IIoT</span>
-      </div>
-      <button class="sidebar-toggle" id="sidebarToggle" title="Toggle sidebar">‹</button>
-    </div>
-
-    <div class="progress-summary">
-      <div class="progress-label">Overall Progress</div>
-      <div class="progress-bar-wrap">
-        <div class="progress-bar-fill" id="overallBar"></div>
-      </div>
-      <div class="progress-pct" id="overallPct">0%</div>
-    </div>
-
-    <nav class="module-nav" id="moduleNav"></nav>
-
-    <div class="sidebar-footer">
-      <button class="settings-btn" id="settingsBtn">⚙ API Settings</button>
-    </div>
-  </aside>
-
-  <!-- Main content -->
-  <main class="main" id="main">
-
-    <!-- Top bar -->
-    <header class="topbar">
-      <button class="menu-btn" id="menuBtn">☰</button>
-      <div class="topbar-title" id="topbarTitle">Welcome</div>
-      <div class="topbar-right">
-        <span class="streak-badge" id="streakBadge" title="Study streak"></span>
-      </div>
-    </header>
-
-    <!-- Dashboard view -->
-    <div class="view active" id="viewDashboard">
-      <div class="dashboard">
-        <div class="hero">
-          <div class="hero-eyebrow">Your SCADA & IIoT Journey</div>
-          <h1 class="hero-title">11 Modules.<br>12 Weeks.<br>Master Industrial Automation.</h1>
-          <p class="hero-sub">1–2 hours/day · 5 days/week · Study notes generated fresh each session</p>
+  <!-- Home screen -->
+  <div class="screen active" id="screenHome">
+    <div class="home-wrap">
+      <div class="home-top">
+        <div class="home-label">SCADA & IIoT Mastery</div>
+        <h1 class="home-title">What are we<br>studying today?</h1>
+        <div class="home-progress">
+          <div class="hp-bar"><div class="hp-fill" id="homeBarFill"></div></div>
+          <span class="hp-text" id="homeBarText">0 of 55 sessions done</span>
         </div>
-
-        <div class="stat-row">
-          <div class="stat-card">
-            <div class="stat-val" id="statDaysStudied">0</div>
-            <div class="stat-lbl">Days Studied</div>
-          </div>
-          <div class="stat-card">
-            <div class="stat-val" id="statModulesComplete">0/11</div>
-            <div class="stat-lbl">Modules Done</div>
-          </div>
-          <div class="stat-card">
-            <div class="stat-val" id="statDaysStreak">0</div>
-            <div class="stat-lbl">Day Streak</div>
-          </div>
-          <div class="stat-card">
-            <div class="stat-val" id="statNextUp">M1·D1</div>
-            <div class="stat-lbl">Next Session</div>
-          </div>
-        </div>
-
-        <div class="phases-grid" id="phasesGrid"></div>
-
-        <div class="start-cta">
-          <button class="cta-btn" id="continueBtn">▶ Start / Continue Learning</button>
-        </div>
+      </div>
+      <div class="module-list" id="moduleList"></div>
+      <div class="home-footer">
+        <button class="btn-ghost" id="homeSettingsBtn">⚙ API Key</button>
+        <span class="streak-text" id="homeStreak"></span>
       </div>
     </div>
+  </div>
 
-    <!-- Study view -->
-    <div class="view" id="viewStudy">
-      <div class="study-layout">
-        <!-- Study content panel -->
-        <div class="study-main">
-          <div class="session-header">
-            <div class="session-meta" id="sessionMeta">Module 1 · Day 1</div>
-            <div class="session-title" id="sessionTitle">Loading session...</div>
-            <div class="session-tags" id="sessionTags"></div>
-          </div>
-
-          <div class="content-area" id="contentArea">
-            <div class="content-placeholder">
-              <div class="placeholder-icon">⬡</div>
-              <p>Click "Load Today's Notes" to generate your study session.</p>
-            </div>
-          </div>
-
-          <div class="session-actions">
-            <button class="action-btn secondary" id="loadNotesBtn">⚡ Load Today's Notes</button>
-            <button class="action-btn primary" id="markDoneBtn" style="display:none">✓ Mark Session Complete</button>
-            <button class="action-btn secondary" id="quizBtn" style="display:none">? Quick Quiz</button>
+  <!-- Study screen -->
+  <div class="screen" id="screenStudy">
+    <div class="study-wrap">
+      <div class="study-left">
+        <div class="study-nav">
+          <button class="back-btn" id="backBtn">← Modules</button>
+          <div class="study-breadcrumb" id="studyBreadcrumb"></div>
+          <button class="btn-ghost small" id="studySettingsBtn">⚙</button>
+        </div>
+        <div class="day-tabs" id="dayTabs"></div>
+        <div class="study-header">
+          <div class="study-module-label" id="studyModuleLabel"></div>
+          <h2 class="study-day-title" id="studyDayTitle"></h2>
+          <div class="study-keywords" id="studyKeywords"></div>
+        </div>
+        <div class="study-body" id="studyBody">
+          <div class="empty-state">
+            <div class="empty-icon">◎</div>
+            <p>Ready when you are.</p>
+            <button class="btn-primary" id="loadBtn1">Generate today's notes</button>
           </div>
         </div>
-
-        <!-- AI Tutor panel -->
-        <div class="tutor-panel" id="tutorPanel">
-          <div class="tutor-header">
-            <span class="tutor-title">⬡ AI Tutor</span>
-            <span class="tutor-context" id="tutorContext"></span>
-          </div>
-          <div class="chat-messages" id="chatMessages">
-            <div class="chat-welcome">
-              <p>Ask me anything about this module. I know your background in controls and automation — I'll tailor explanations to what you already know.</p>
-            </div>
-          </div>
-          <div class="chat-input-wrap">
-            <textarea class="chat-input" id="chatInput" placeholder="Ask a question about this topic..." rows="2"></textarea>
-            <button class="chat-send" id="chatSend">↑</button>
-          </div>
-          <div class="quick-prompts" id="quickPrompts"></div>
+        <div class="study-footer" id="studyFooter" style="display:none">
+          <button class="btn-ghost" id="loadBtn">↻ Regenerate</button>
+          <button class="btn-done" id="doneBtn">✓ Mark complete & continue</button>
         </div>
       </div>
+      <div class="tutor-wrap" id="tutorWrap">
+        <div class="tutor-head">
+          <span class="tutor-label">Ask the tutor</span>
+          <button class="tutor-close" id="tutorClose">✕</button>
+        </div>
+        <div class="chat-body" id="chatBody">
+          <div class="chat-intro">Ask anything about this session — I'll tie it to your Rockwell &amp; panel wiring background.</div>
+        </div>
+        <div class="chat-foot">
+          <div class="quick-qs" id="quickQs"></div>
+          <div class="chat-row">
+            <textarea id="chatInput" placeholder="Ask a question…" rows="2"></textarea>
+            <button id="chatSend">↑</button>
+          </div>
+        </div>
+      </div>
+      <button class="tutor-toggle" id="tutorToggle">💬 Ask tutor</button>
     </div>
+  </div>
 
-  </main>
-
-  <!-- API Settings Modal -->
-  <div class="modal-overlay" id="modalOverlay">
-    <div class="modal">
-      <div class="modal-header">
-        <span>API Settings</span>
-        <button class="modal-close" id="modalClose">✕</button>
+  <!-- Modal -->
+  <div class="modal-bg" id="modalBg">
+    <div class="modal-box">
+      <div class="modal-title">API Key <button class="modal-x" id="modalX">✕</button></div>
+      <p class="modal-desc">Free at <a href="https://console.groq.com" target="_blank">console.groq.com</a> — no credit card needed. Key stays in your browser only.</p>
+      <input type="password" id="apiInput" placeholder="gsk_…" autocomplete="off">
+      <div class="modal-btns">
+        <button class="btn-primary" id="saveKey">Save</button>
+        <button class="btn-ghost" id="clearKey">Clear</button>
       </div>
-      <div class="modal-body">
-        <p class="modal-desc">Enter your Groq API key to enable the AI tutor. Free tier — no credit card needed. Your key is stored only in your browser and never sent anywhere except directly to Groq's API.</p>
-        <label class="field-label">Groq API Key</label>
-        <input type="password" class="api-input" id="apiKeyInput" placeholder="gsk_...">
-        <div class="modal-actions">
-          <button class="action-btn primary" id="saveApiKey">Save Key</button>
-          <button class="action-btn secondary" id="clearApiKey">Clear Key</button>
-        </div>
-        <div class="api-status" id="apiStatus"></div>
-        <div class="modal-note">
-          <strong>Free tier:</strong> Get a free key at <a href="https://console.groq.com" target="_blank">console.groq.com</a> — sign up, go to API Keys, create key. No billing required. Your key goes only to <code>api.groq.com</code>.
-        </div>
-      </div>
+      <div class="key-status" id="keyStatus"></div>
     </div>
   </div>
 

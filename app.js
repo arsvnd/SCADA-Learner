@@ -11,689 +11,382 @@ async function callGroq(apiKey, systemPrompt, userMessage, history = []) {
     ...history.map(m => ({ role: m.role === 'assistant' ? 'assistant' : 'user', content: m.content })),
     { role: 'user', content: userMessage }
   ];
-
   const response = await fetch(GROQ_API, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${apiKey}`
-    },
-    body: JSON.stringify({
-      model: GROQ_MODEL,
-      max_tokens: 2500,
-      temperature: 0.7,
-      messages
-    })
+    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}` },
+    body: JSON.stringify({ model: GROQ_MODEL, max_tokens: 2500, temperature: 0.7, messages })
   });
-
   if (!response.ok) {
     const err = await response.json();
     throw new Error(err.error?.message || `Groq API error ${response.status}`);
   }
-
   const data = await response.json();
   return data.choices?.[0]?.message?.content || '';
 }
 
-// ── State ────────────────────────────────────────────────────
-const state = {
-  currentView: 'dashboard',
-  currentModule: 1,
-  currentDay: 1,
-  notesLoaded: false,
-  chatHistory: [],
+// ── State ─────────────────────────────────────────────────────
+const S = {
+  module: 1,
+  day: 1,
   apiKey: '',
-  progress: {}, // { "1-1": true, "1-2": true, ... }
-  studyDates: [], // ["2024-03-18", ...]
-  lastStudyDate: null,
+  progress: {},
+  studyDates: [],
+  chatHistory: [],
+  notesLoaded: false,
 };
 
-// ── Init ─────────────────────────────────────────────────────
-function init() {
+// ── Boot ──────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
   loadState();
-  renderSidebar();
-  renderDashboard();
-  bindEvents();
-  updateStreakBadge();
-  checkApiKey();
-}
+  renderHome();
+  bindAll();
+});
 
 function loadState() {
   try {
-    const saved = localStorage.getItem('scada_progress');
-    if (saved) Object.assign(state.progress, JSON.parse(saved));
-    const dates = localStorage.getItem('scada_study_dates');
-    if (dates) state.studyDates = JSON.parse(dates);
-    state.apiKey = localStorage.getItem('scada_api_key') || '';
-    const last = localStorage.getItem('scada_last_session');
-    if (last) {
-      const parsed = JSON.parse(last);
-      state.currentModule = parsed.module || 1;
-      state.currentDay = parsed.day || 1;
-    }
-  } catch (e) {}
+    const p = localStorage.getItem('sp'); if (p) Object.assign(S.progress, JSON.parse(p));
+    const d = localStorage.getItem('sd'); if (d) S.studyDates = JSON.parse(d);
+    S.apiKey = localStorage.getItem('sk') || '';
+    const last = localStorage.getItem('sl'); if (last) { const l = JSON.parse(last); S.module = l.m || 1; S.day = l.d || 1; }
+  } catch(e) {}
 }
 
-function saveState() {
-  localStorage.setItem('scada_progress', JSON.stringify(state.progress));
-  localStorage.setItem('scada_study_dates', JSON.stringify(state.studyDates));
-  localStorage.setItem('scada_last_session', JSON.stringify({
-    module: state.currentModule,
-    day: state.currentDay
-  }));
+function save() {
+  localStorage.setItem('sp', JSON.stringify(S.progress));
+  localStorage.setItem('sd', JSON.stringify(S.studyDates));
+  localStorage.setItem('sl', JSON.stringify({ m: S.module, d: S.day }));
 }
 
-// ── Progress helpers ──────────────────────────────────────────
-function isComplete(moduleId, day) {
-  return !!state.progress[`${moduleId}-${day}`];
-}
-
-function markComplete(moduleId, day) {
-  state.progress[`${moduleId}-${day}`] = true;
+// ── Helpers ───────────────────────────────────────────────────
+const done = (m, d) => !!S.progress[`${m}-${d}`];
+const modPct = (mid) => { const mod = getModule(mid); const c = mod.days.filter(d => done(mid, d.day)).length; return Math.round(c / mod.days.length * 100); };
+const totalDone = () => Object.values(S.progress).filter(Boolean).length;
+const streak = () => {
+  if (!S.studyDates.length) return 0;
+  const sorted = [...S.studyDates].sort().reverse();
   const today = new Date().toISOString().split('T')[0];
-  if (!state.studyDates.includes(today)) {
-    state.studyDates.push(today);
-  }
-  saveState();
-}
-
-function getModuleProgress(moduleId) {
-  const mod = getModule(moduleId);
-  if (!mod) return 0;
-  const done = mod.days.filter(d => isComplete(moduleId, d.day)).length;
-  return Math.round((done / mod.days.length) * 100);
-}
-
-function getOverallProgress() {
-  const total = COURSE_DATA.modules.reduce((sum, m) => sum + m.days.length, 0);
-  const done = Object.keys(state.progress).filter(k => state.progress[k]).length;
-  return Math.round((done / total) * 100);
-}
-
-function getStreak() {
-  if (!state.studyDates.length) return 0;
-  const sorted = [...state.studyDates].sort().reverse();
-  const today = new Date().toISOString().split('T')[0];
-  const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0];
-  if (sorted[0] !== today && sorted[0] !== yesterday) return 0;
-  let streak = 1;
+  const yest = new Date(Date.now() - 86400000).toISOString().split('T')[0];
+  if (sorted[0] !== today && sorted[0] !== yest) return 0;
+  let s = 1;
   for (let i = 1; i < sorted.length; i++) {
-    const prev = new Date(sorted[i - 1]);
-    const curr = new Date(sorted[i]);
-    const diff = (prev - curr) / 86400000;
-    if (Math.round(diff) === 1) streak++;
+    if (Math.round((new Date(sorted[i-1]) - new Date(sorted[i])) / 86400000) === 1) s++;
     else break;
   }
-  return streak;
-}
+  return s;
+};
+const nextSession = () => {
+  for (const mod of COURSE_DATA.modules)
+    for (const d of mod.days)
+      if (!done(mod.id, d.day)) return { m: mod.id, d: d.day };
+  return { m: 11, d: 5 };
+};
 
-function getNextSession() {
+// ── Render Home ───────────────────────────────────────────────
+function renderHome() {
+  const total = 55;
+  const completed = totalDone();
+  document.getElementById('homeBarFill').style.width = Math.round(completed / total * 100) + '%';
+  document.getElementById('homeBarText').textContent = `${completed} of ${total} sessions done`;
+  const s = streak();
+  document.getElementById('homeStreak').textContent = s > 0 ? `🔥 ${s} day streak` : '';
+
+  const list = document.getElementById('moduleList');
+  list.innerHTML = '';
+  let lastPhase = null;
+
   for (const mod of COURSE_DATA.modules) {
-    for (const d of mod.days) {
-      if (!isComplete(mod.id, d.day)) return { moduleId: mod.id, day: d.day };
-    }
-  }
-  return { moduleId: 11, day: 5 };
-}
-
-// ── Render Sidebar ─────────────────────────────────────────────
-function renderSidebar() {
-  const nav = document.getElementById('moduleNav');
-  nav.innerHTML = '';
-
-  for (const phase of COURSE_DATA.phases) {
-    const phaseEl = document.createElement('div');
-    phaseEl.className = 'phase-group';
-
-    const phaseHeader = document.createElement('div');
-    phaseHeader.className = 'phase-group-header';
-    phaseHeader.innerHTML = `<span class="phase-dot" style="background:${phase.color}"></span><span>${phase.title}</span>`;
-    phaseEl.appendChild(phaseHeader);
-
-    for (const modId of phase.modules) {
-      const mod = getModule(modId);
-      const pct = getModuleProgress(modId);
-      const isActive = state.currentModule === modId;
-
-      const modEl = document.createElement('div');
-      modEl.className = `nav-module${isActive ? ' active' : ''}`;
-      modEl.dataset.moduleId = modId;
-      modEl.innerHTML = `
-        <div class="nav-mod-header">
-          <span class="nav-mod-num">${modId.toString().padStart(2, '0')}</span>
-          <span class="nav-mod-title">${mod.shortTitle}</span>
-          ${pct === 100 ? '<span class="nav-mod-check">✓</span>' : ''}
-        </div>
-        <div class="nav-mod-progress">
-          <div class="nav-mod-bar" style="width:${pct}%;background:${phase.color}"></div>
-        </div>
-      `;
-
-      // Days sub-list (expandable)
-      const daysEl = document.createElement('div');
-      daysEl.className = `nav-days${isActive ? ' open' : ''}`;
-      mod.days.forEach(d => {
-        const done = isComplete(modId, d.day);
-        const isCurrent = state.currentModule === modId && state.currentDay === d.day;
-        const dayEl = document.createElement('div');
-        dayEl.className = `nav-day${done ? ' done' : ''}${isCurrent ? ' current' : ''}`;
-        dayEl.dataset.module = modId;
-        dayEl.dataset.day = d.day;
-        dayEl.innerHTML = `<span class="day-dot">${done ? '✓' : d.day}</span><span>${d.title}</span>`;
-        daysEl.appendChild(dayEl);
-      });
-
-      modEl.appendChild(daysEl);
-      modEl.addEventListener('click', (e) => {
-        if (e.target.closest('.nav-day')) return;
-        toggleModuleNav(modId);
-      });
-      phaseEl.appendChild(modEl);
+    const phase = getPhaseForModule(mod.id);
+    if (phase.id !== lastPhase) {
+      lastPhase = phase.id;
+      const div = document.createElement('div');
+      div.className = 'phase-divider';
+      div.textContent = `Phase ${phase.id} — ${phase.title}`;
+      list.appendChild(div);
     }
 
-    nav.appendChild(phaseEl);
-  }
-
-  // Day click events
-  nav.querySelectorAll('.nav-day').forEach(el => {
-    el.addEventListener('click', (e) => {
-      e.stopPropagation();
-      const moduleId = parseInt(el.dataset.module);
-      const day = parseInt(el.dataset.day);
-      openSession(moduleId, day);
-    });
-  });
-
-  // Update overall bar
-  const pct = getOverallProgress();
-  const bar = document.getElementById('overallBar');
-  const pctEl = document.getElementById('overallPct');
-  if (bar) bar.style.width = pct + '%';
-  if (pctEl) pctEl.textContent = pct + '%';
-}
-
-function toggleModuleNav(moduleId) {
-  const nav = document.getElementById('moduleNav');
-  const modEls = nav.querySelectorAll('.nav-module');
-  modEls.forEach(el => {
-    const isThis = parseInt(el.dataset.moduleId) === moduleId;
-    el.classList.toggle('active', isThis);
-    const days = el.querySelector('.nav-days');
-    if (days) days.classList.toggle('open', isThis);
-  });
-}
-
-// ── Render Dashboard ───────────────────────────────────────────
-function renderDashboard() {
-  const next = getNextSession();
-  const completedModules = COURSE_DATA.modules.filter(m => getModuleProgress(m.id) === 100).length;
-  const daysStudied = state.studyDates.length;
-
-  document.getElementById('statDaysStudied').textContent = daysStudied;
-  document.getElementById('statModulesComplete').textContent = `${completedModules}/11`;
-  document.getElementById('statDaysStreak').textContent = getStreak();
-  document.getElementById('statNextUp').textContent = `M${next.moduleId}·D${next.day}`;
-
-  const grid = document.getElementById('phasesGrid');
-  grid.innerHTML = '';
-
-  for (const phase of COURSE_DATA.phases) {
-    const card = document.createElement('div');
-    card.className = 'phase-card';
-    card.style.setProperty('--phase-color', phase.color);
-    card.style.setProperty('--phase-color-light', phase.colorLight);
-
-    const totalDays = phase.modules.reduce((sum, mid) => sum + getModule(mid).days.length, 0);
-    const doneDays = phase.modules.reduce((sum, mid) => {
-      return sum + getModule(mid).days.filter(d => isComplete(mid, d.day)).length;
-    }, 0);
-    const pct = Math.round((doneDays / totalDays) * 100);
-
-    card.innerHTML = `
-      <div class="phase-card-top">
-        <div class="phase-card-num">Phase ${phase.id}</div>
-        <div class="phase-card-weeks">Weeks ${phase.weeks}</div>
+    const pct = modPct(mod.id);
+    const item = document.createElement('div');
+    item.className = 'mod-item';
+    item.innerHTML = `
+      <div class="mod-num">${String(mod.id).padStart(2,'0')}</div>
+      <div class="mod-info">
+        <div class="mod-title">${mod.shortTitle}</div>
+        <div class="mod-days-row">${mod.days.map(d => `<div class="day-dot-sm ${done(mod.id, d.day) ? 'done' : (S.module === mod.id && S.day === d.day ? 'current' : '')}"></div>`).join('')}</div>
       </div>
-      <div class="phase-card-title">${phase.title}</div>
-      <div class="phase-card-mods">${phase.modules.length} module${phase.modules.length > 1 ? 's' : ''} · ${totalDays} days</div>
-      <div class="phase-card-bar-wrap">
-        <div class="phase-card-bar" style="width:${pct}%"></div>
-      </div>
-      <div class="phase-card-pct">${pct}%</div>
-    `;
+      <div class="mod-right">
+        <span class="mod-pct">${pct}%</span>
+        ${pct === 100 ? '<span class="mod-check">✓</span>' : ''}
+      </div>`;
 
-    card.addEventListener('click', () => {
-      const firstMod = phase.modules[0];
-      const mod = getModule(firstMod);
-      const firstIncomplete = mod.days.find(d => !isComplete(firstMod, d.day));
-      openSession(firstMod, firstIncomplete ? firstIncomplete.day : 1);
+    item.addEventListener('click', () => {
+      // Open to first incomplete day of this module
+      const firstIncomplete = mod.days.find(d => !done(mod.id, d.day));
+      openSession(mod.id, firstIncomplete ? firstIncomplete.day : 1);
     });
 
-    grid.appendChild(card);
+    list.appendChild(item);
   }
 }
 
-// ── Open Study Session ─────────────────────────────────────────
+// ── Open session ──────────────────────────────────────────────
 function openSession(moduleId, day) {
-  state.currentModule = moduleId;
-  state.currentDay = day;
-  state.notesLoaded = false;
-  state.chatHistory = [];
-  saveState();
+  S.module = moduleId;
+  S.day = day;
+  S.notesLoaded = false;
+  S.chatHistory = [];
+  save();
 
-  showView('study');
-  renderSidebar();
-  renderSession();
+  showScreen('screenStudy');
+  renderStudy();
 }
 
-function renderSession() {
-  const mod = getModule(state.currentModule);
-  const dayData = getDayData(state.currentModule, state.currentDay);
-  const phase = getPhaseForModule(state.currentModule);
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo(0, 0);
+}
 
+// ── Render Study ──────────────────────────────────────────────
+function renderStudy() {
+  const mod = getModule(S.module);
+  const dayData = getDayData(S.module, S.day);
   if (!mod || !dayData) return;
 
-  // Header
-  document.getElementById('sessionMeta').textContent = `Module ${state.currentModule} · Day ${state.currentDay} of ${mod.days.length}`;
-  document.getElementById('sessionTitle').textContent = dayData.title;
-  document.getElementById('topbarTitle').textContent = `${mod.shortTitle} — Day ${state.currentDay}`;
+  // Breadcrumb
+  document.getElementById('studyBreadcrumb').textContent = mod.shortTitle;
 
-  // Tags
-  const tagsEl = document.getElementById('sessionTags');
-  tagsEl.innerHTML = dayData.keywords.slice(0, 5).map(k =>
-    `<span class="tag" style="border-color:${phase.color}20;color:${phase.color}">${k}</span>`
-  ).join('');
-
-  // Content area
-  const contentArea = document.getElementById('contentArea');
-  if (isComplete(state.currentModule, state.currentDay)) {
-    contentArea.innerHTML = `
-      <div class="content-placeholder completed">
-        <div class="placeholder-icon">✓</div>
-        <p>You've completed this session. Load notes to review.</p>
-      </div>`;
-  } else {
-    contentArea.innerHTML = `
-      <div class="content-placeholder">
-        <div class="placeholder-icon" style="color:${phase.color}">⬡</div>
-        <p>Ready to study? Click <strong>Load Today's Notes</strong> to generate your session.</p>
-        <div class="session-topics-preview">
-          ${dayData.topics.map(t => `<div class="topic-pill">• ${t}</div>`).join('')}
-        </div>
-      </div>`;
-  }
-
-  // Buttons
-  document.getElementById('loadNotesBtn').style.display = 'inline-flex';
-  document.getElementById('markDoneBtn').style.display = 'none';
-  document.getElementById('quizBtn').style.display = 'none';
-
-  // AI tutor context
-  document.getElementById('tutorContext').textContent = `M${state.currentModule} D${state.currentDay}`;
-
-  // Quick prompts
-  const prompts = getQuickPrompts(state.currentModule, state.currentDay);
-  const qpEl = document.getElementById('quickPrompts');
-  qpEl.innerHTML = prompts.map(p =>
-    `<button class="quick-prompt-btn">${p}</button>`
-  ).join('');
-  qpEl.querySelectorAll('.quick-prompt-btn').forEach(btn => {
-    btn.addEventListener('click', () => sendChat(btn.textContent));
+  // Day tabs
+  const tabs = document.getElementById('dayTabs');
+  tabs.innerHTML = mod.days.map(d => `
+    <button class="day-tab ${d.day === S.day ? 'active' : ''} ${done(S.module, d.day) ? 'done-tab' : ''}" data-day="${d.day}">
+      <span class="tab-dot"></span>Day ${d.day}
+    </button>`).join('');
+  tabs.querySelectorAll('.day-tab').forEach(btn => {
+    btn.addEventListener('click', () => openSession(S.module, parseInt(btn.dataset.day)));
   });
 
-  // Clear chat
-  document.getElementById('chatMessages').innerHTML = `
-    <div class="chat-welcome">
-      <p>I'm here to help with <strong>${dayData.title}</strong>. Ask anything — I'll tie it back to your controls & automation background.</p>
-    </div>`;
+  // Header
+  document.getElementById('studyModuleLabel').textContent = `Module ${S.module} · ${getPhaseForModule(S.module).title}`;
+  document.getElementById('studyDayTitle').textContent = dayData.title;
+  document.getElementById('studyKeywords').innerHTML = dayData.keywords.slice(0, 5).map(k => `<span class="kw-tag">${k}</span>`).join('');
+
+  // Body — show topics preview
+  const body = document.getElementById('studyBody');
+  if (done(S.module, S.day)) {
+    body.innerHTML = `<div class="empty-state"><div class="empty-icon">✓</div><p>Session completed. Load notes to review.</p><button class="btn-primary" id="loadBtn1">Review notes</button></div>`;
+  } else {
+    body.innerHTML = `<div class="empty-state"><div class="empty-icon">◎</div><p style="margin-bottom:8px">Today's topics:</p>${dayData.topics.map(t => `<p style="font-size:14px;color:var(--text3);margin:2px 0">• ${t}</p>`).join('')}<br><button class="btn-primary" id="loadBtn1">Generate today's notes</button></div>`;
+  }
+  document.getElementById('loadBtn1').addEventListener('click', loadNotes);
+
+  // Footer
+  document.getElementById('studyFooter').style.display = 'none';
+
+  // Tutor
+  document.getElementById('chatBody').innerHTML = `<div class="chat-intro">Ask anything about <em>${dayData.title}</em> — I'll tie it to your Rockwell &amp; panel wiring background.</div>`;
+  renderQuickQs();
 }
 
-// ── Load Study Notes via API ───────────────────────────────────
+// ── Load Notes ────────────────────────────────────────────────
 async function loadNotes() {
-  if (!state.apiKey) {
-    showApiModal();
-    return;
-  }
+  if (!S.apiKey) { openModal(); return; }
 
-  const mod = getModule(state.currentModule);
-  const dayData = getDayData(state.currentModule, state.currentDay);
-  const phase = getPhaseForModule(state.currentModule);
-  const contentArea = document.getElementById('contentArea');
+  const mod = getModule(S.module);
+  const dayData = getDayData(S.module, S.day);
+  const phase = getPhaseForModule(S.module);
+  const body = document.getElementById('studyBody');
 
-  contentArea.innerHTML = `<div class="loading-notes"><div class="spinner"></div><p>Generating study notes for ${dayData.title}…</p></div>`;
+  body.innerHTML = `<div class="loading-state"><div class="spinner"></div><p>Generating notes for <em>${dayData.title}</em>…</p></div>`;
 
-  const prompt = buildNotesPrompt(mod, dayData, phase);
+  const prompt = `You are an expert SCADA/IIoT instructor writing personalized daily study notes.
 
-  try {
-    const text = await callGroq(state.apiKey, 'You are an expert SCADA/IIoT instructor.', prompt);
-    renderNotes(text, phase);
+STUDENT: Ash — electrical panel wiring & assembly (Rockwell Automation), Siemens HMI diagnostics, MES/SAP exposure, Python skills. Goal: Controls/Automation Engineer or OT Integration Engineer role.
 
-    state.notesLoaded = true;
-    document.getElementById('markDoneBtn').style.display = 'inline-flex';
-    document.getElementById('quizBtn').style.display = 'inline-flex';
+SESSION: Module ${mod.id}: ${mod.title} | Phase: ${phase.title} | Day ${dayData.day}/5: ${dayData.title}
+Topics: ${dayData.topics.join('; ')}
+Keywords: ${dayData.keywords.join(', ')}
 
-    if (isComplete(state.currentModule, state.currentDay)) {
-      document.getElementById('markDoneBtn').textContent = '✓ Completed';
-      document.getElementById('markDoneBtn').disabled = true;
-    }
-
-  } catch (err) {
-    contentArea.innerHTML = `<div class="error-msg"><strong>Error loading notes:</strong> ${err.message}<br><br>Check your Groq API key in Settings. Get a free key at <a href="https://console.groq.com" target="_blank" style="color:#378ADD">console.groq.com</a>.</div>`;
-  }
-}
-
-function buildNotesPrompt(mod, dayData, phase) {
-  return `You are an expert SCADA/IIoT instructor creating personalized daily study notes.
-
-STUDENT CONTEXT:
-- Background: Electrical wiring, panel assembly (Rockwell Automation), Siemens HMI diagnostics, MES/SAP exposure, Python skills
-- Goal: Transition to Controls/Automation Engineer or OT Integration Engineer role
-- Already knows: Allen-Bradley systems, ladder logic basics, 4-20mA signals, panel wiring
-
-TODAY'S SESSION:
-- Module ${mod.id}: ${mod.title}
-- Phase: ${phase.title}
-- Day ${dayData.day} of 5: ${dayData.title}
-- Topics to cover: ${dayData.topics.join('; ')}
-- Key terms: ${dayData.keywords.join(', ')}
-
-INSTRUCTIONS:
-Write comprehensive study notes for this session. Format using markdown with these sections:
+Write study notes in this exact markdown format:
 
 ## Overview
-2-3 sentence orientation for this day's content and why it matters.
+2–3 sentences on what this day covers and why it matters for an OT career.
 
 ## Core Concepts
-For each topic listed above, write a clear explanation (3-5 sentences each). Where relevant, tie it to Allen-Bradley/Rockwell systems or the student's existing background in panel wiring and HMI work. Use concrete industrial examples.
+For each topic, write a clear explanation (3–5 sentences). Tie abstract ideas to real industrial products and scenarios. Where relevant, relate to Allen-Bradley/Rockwell or Siemens systems.
 
-## Key Terms & Definitions
-A clean glossary table (Term | Definition | Why It Matters) for the keywords listed.
+## Key Terms
+| Term | Definition | Why It Matters |
+(Table for each keyword)
 
-## How It Works in Practice
-A real-world scenario or walkthrough showing these concepts in action. Be specific — name actual products, protocols, signal types.
+## In Practice
+A concrete real-world walkthrough showing these concepts at work. Name actual products, protocols, signal types.
 
-## Ash's Advantage
-1-2 sentences about how the student's existing background (Rockwell, Siemens HMI, wiring) gives them a head start with today's material.
+## Your Advantage
+1–2 sentences on how Ash's existing background gives a head start with today's material.
 
 ## Quick Check
-3 short questions to verify understanding (no answers — these are for self-testing). Make them practical, not just definition recall.
+3 practical self-test questions (no answers). Make them scenario-based, not just definitions.
 
-## Coming Up Next
-One sentence bridging to the next day or module.
+## Up Next
+One sentence bridging to the next session.
 
-Keep the tone technical but clear. Avoid generic filler — every sentence should teach something.`;
+Be direct and technical. No filler. Every sentence teaches something.`;
+
+  try {
+    const text = await callGroq(S.apiKey, 'You are an expert SCADA/IIoT instructor.', prompt);
+    body.innerHTML = `<div class="notes">${mdToHtml(text)}</div>`;
+    S.notesLoaded = true;
+    document.getElementById('studyFooter').style.display = 'flex';
+    document.getElementById('doneBtn').disabled = done(S.module, S.day);
+    document.getElementById('doneBtn').textContent = done(S.module, S.day) ? '✓ Completed' : '✓ Mark complete & continue';
+  } catch(err) {
+    body.innerHTML = `<div class="error-box"><strong>Error:</strong> ${err.message}<br><br>Check your Groq API key in <a href="#" onclick="openModal();return false">Settings</a>. Get a free key at <a href="https://console.groq.com" target="_blank">console.groq.com</a>.</div>`;
+  }
 }
 
-function renderNotes(markdown, phase) {
-  const contentArea = document.getElementById('contentArea');
-  const html = markdownToHtml(markdown, phase.color);
-  contentArea.innerHTML = `<div class="notes-content">${html}</div>`;
+// ── Mark complete ─────────────────────────────────────────────
+function markDone() {
+  S.progress[`${S.module}-${S.day}`] = true;
+  const today = new Date().toISOString().split('T')[0];
+  if (!S.studyDates.includes(today)) S.studyDates.push(today);
+  save();
+
+  document.getElementById('doneBtn').textContent = '✓ Completed';
+  document.getElementById('doneBtn').disabled = true;
+
+  // Re-render day tabs to show green dot
+  const tabs = document.getElementById('dayTabs');
+  const mod = getModule(S.module);
+  tabs.innerHTML = mod.days.map(d => `
+    <button class="day-tab ${d.day === S.day ? 'active' : ''} ${done(S.module, d.day) ? 'done-tab' : ''}" data-day="${d.day}">
+      <span class="tab-dot"></span>Day ${d.day}
+    </button>`).join('');
+  tabs.querySelectorAll('.day-tab').forEach(btn => {
+    btn.addEventListener('click', () => openSession(S.module, parseInt(btn.dataset.day)));
+  });
+
+  // Advance after 1.2s
+  setTimeout(() => {
+    const modData = getModule(S.module);
+    if (S.day < modData.days.length) {
+      openSession(S.module, S.day + 1);
+    } else {
+      const idx = COURSE_DATA.modules.findIndex(m => m.id === S.module);
+      if (idx < COURSE_DATA.modules.length - 1) {
+        openSession(COURSE_DATA.modules[idx + 1].id, 1);
+      } else {
+        showScreen('screenHome');
+        renderHome();
+      }
+    }
+  }, 1200);
 }
 
-// Simple markdown renderer
-function markdownToHtml(md, accentColor) {
+// ── Chat ──────────────────────────────────────────────────────
+async function sendChat(msg) {
+  if (!msg.trim()) return;
+  if (!S.apiKey) { openModal(); return; }
+
+  document.getElementById('chatInput').value = '';
+  const body = document.getElementById('chatBody');
+  const mod = getModule(S.module);
+  const dayData = getDayData(S.module, S.day);
+
+  body.innerHTML += `<div class="chat-msg"><div class="bubble user">${esc(msg)}</div></div>`;
+
+  const tid = 'th-' + Date.now();
+  body.innerHTML += `<div class="chat-msg" id="${tid}"><div class="bubble ai"><div class="thinking-dots"><span></span><span></span><span></span></div></div></div>`;
+  body.scrollTop = body.scrollHeight;
+
+  const sys = `You are an expert SCADA/IIoT tutor helping Ash, who has hands-on panel wiring, Rockwell Automation, and Siemens HMI background. Currently studying Module ${S.module}: ${mod.title}, Day ${S.day}: ${dayData.title}. Topics: ${dayData.topics.join('; ')}. Be concise, technical, and tie answers to real industrial products and scenarios. Use markdown.`;
+
+  S.chatHistory.push({ role: 'user', content: msg });
+  try {
+    const reply = await callGroq(S.apiKey, sys, msg, S.chatHistory.slice(-10, -1));
+    S.chatHistory.push({ role: 'assistant', content: reply });
+    const el = document.getElementById(tid);
+    if (el) el.outerHTML = `<div class="chat-msg"><div class="bubble ai">${mdToHtml(reply)}</div></div>`;
+  } catch(err) {
+    const el = document.getElementById(tid);
+    if (el) el.outerHTML = `<div class="chat-msg"><div class="bubble error">Error: ${err.message}</div></div>`;
+  }
+  body.scrollTop = body.scrollHeight;
+}
+
+function renderQuickQs() {
+  const dayData = getDayData(S.module, S.day);
+  const kw = dayData?.keywords || [];
+  const qs = [
+    `Explain ${kw[0] || 'this'} like I'm a controls technician`,
+    `Real-world example of ${kw[1] || 'this concept'}`,
+    `How does this relate to Allen-Bradley systems?`,
+    `Quiz me on today's topics`
+  ];
+  const el = document.getElementById('quickQs');
+  el.innerHTML = qs.map(q => `<button class="quick-q">${q}</button>`).join('');
+  el.querySelectorAll('.quick-q').forEach(btn => btn.addEventListener('click', () => sendChat(btn.textContent)));
+}
+
+// ── Modal ─────────────────────────────────────────────────────
+function openModal() {
+  document.getElementById('modalBg').classList.add('open');
+  document.getElementById('apiInput').value = S.apiKey || '';
+  updateKeyStatus();
+}
+function closeModal() { document.getElementById('modalBg').classList.remove('open'); }
+function updateKeyStatus() {
+  const el = document.getElementById('keyStatus');
+  if (S.apiKey) { el.textContent = '✓ API key saved'; el.className = 'key-status ok'; }
+  else { el.textContent = 'No key — AI features disabled'; el.className = 'key-status warn'; }
+}
+
+// ── Markdown ──────────────────────────────────────────────────
+function mdToHtml(md) {
   return md
-    .replace(/^## (.+)$/gm, `<h2 style="color:${accentColor}">$1</h2>`)
+    .replace(/^## (.+)$/gm, '<h2>$1</h2>')
     .replace(/^### (.+)$/gm, '<h3>$1</h3>')
     .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
     .replace(/\*(.+?)\*/g, '<em>$1</em>')
     .replace(/`(.+?)`/g, '<code>$1</code>')
-    .replace(/^\| (.+) \|$/gm, (_, row) => {
-      const cells = row.split(' | ');
-      return '<tr>' + cells.map(c => `<td>${c}</td>`).join('') + '</tr>';
+    .replace(/^\| (.+) \|$/gm, (_, row) => '<tr>' + row.split(' | ').map(c => `<td>${c}</td>`).join('') + '</tr>')
+    .replace(/(<tr>[\s\S]*?<\/tr>\n?)+/g, m => {
+      const rows = m.trim().split('\n').filter(r => r.includes('<tr>'));
+      if (rows.length < 2) return `<div class="table-wrap"><table><tbody>${m}</tbody></table></div>`;
+      const head = rows[0].replace(/<td>/g,'<th>').replace(/<\/td>/g,'</th>');
+      const body = rows.slice(2).join('');
+      return `<div class="table-wrap"><table><thead>${head}</thead><tbody>${body}</tbody></table></div>`;
     })
-    .replace(/(<tr>.*<\/tr>\n?)+/g, match => {
-      const rows = match.trim().split('\n');
-      const header = rows[0].replace(/<td>/g, '<th>').replace(/<\/td>/g, '</th>');
-      const body = rows.slice(2).join('\n');
-      return `<div class="table-wrap"><table><thead>${header}</thead><tbody>${body}</tbody></table></div>`;
-    })
-    .replace(/^- (.+)$/gm, '<li>$1</li>')
-    .replace(/(<li>.*<\/li>\n?)+/g, match => `<ul>${match}</ul>`)
+    .replace(/^> (.+)$/gm, '<blockquote><p>$1</p></blockquote>')
+    .replace(/^[-*] (.+)$/gm, '<li>$1</li>')
     .replace(/^\d+\. (.+)$/gm, '<li>$1</li>')
-    .replace(/\n\n/g, '</p><p>')
-    .replace(/^(?!<[hut]|<li|<\/|<div|<table)(.+)$/gm, '$1')
-    .replace(/<\/p><p>(<[h2-3]|<ul|<div)/g, '$1')
-    .replace(/^<p>(<h[23]|<ul|<div)/, '$1');
+    .replace(/(<li>[\s\S]*?<\/li>)(\n<li>[\s\S]*?<\/li>)*/g, m => `<ul>${m}</ul>`)
+    .replace(/\n{2,}/g, '\n')
+    .replace(/^(?!<[htbul])(.+)$/gm, '<p>$1</p>')
+    .replace(/<p><\/p>/g, '');
 }
 
-// ── Quick Quiz ─────────────────────────────────────────────────
-async function loadQuiz() {
-  if (!state.apiKey) { showApiModal(); return; }
+function esc(t) { const d = document.createElement('div'); d.appendChild(document.createTextNode(t)); return d.innerHTML; }
 
-  const mod = getModule(state.currentModule);
-  const dayData = getDayData(state.currentModule, state.currentDay);
-
-  const userMsg = `Generate a 5-question multiple choice quiz for Module ${mod.id} Day ${dayData.day}: "${dayData.title}". 
-
-Topics: ${dayData.topics.join('; ')}
-
-Format each question as:
-Q: [question]
-A) [option]
-B) [option]  
-C) [option]
-D) [option]
-Answer: [letter] — [brief explanation]
-
-Make questions practical and industrial-focused, not just definition recall. Tie them to real plant scenarios.`;
-
-  sendChat(userMsg, true);
-}
-
-// ── Chat / AI Tutor ────────────────────────────────────────────
-async function sendChat(userMessage, isSystem = false) {
-  if (!state.apiKey) {
-    showApiModal();
-    return;
-  }
-
-  if (!userMessage.trim()) return;
-
-  const chatMessages = document.getElementById('chatMessages');
-  const input = document.getElementById('chatInput');
-
-  if (!isSystem) input.value = '';
-
-  // Add user message to UI
-  chatMessages.innerHTML += `
-    <div class="chat-msg user">
-      <div class="chat-bubble">${escapeHtml(userMessage)}</div>
-    </div>`;
-
-  // Add thinking indicator
-  const thinkingId = 'thinking-' + Date.now();
-  chatMessages.innerHTML += `
-    <div class="chat-msg ai" id="${thinkingId}">
-      <div class="chat-bubble thinking"><span></span><span></span><span></span></div>
-    </div>`;
-  chatMessages.scrollTop = chatMessages.scrollHeight;
-
-  // Build message history
-  const mod = getModule(state.currentModule);
-  const dayData = getDayData(state.currentModule, state.currentDay);
-  const phase = getPhaseForModule(state.currentModule);
-
-  const systemPrompt = `You are an expert SCADA/IIoT tutor helping a student named Ash who is transitioning into an OT Integration Engineer / Controls Engineer role.
-
-STUDENT BACKGROUND:
-- Hands-on: panel wiring, cabinet assembly at Rockwell Automation, Siemens HMI diagnostics, MES/SAP exposure
-- Knows: Allen-Bradley ladder logic basics, 4-20mA loops, signal conditioning, panel wiring
-- Upskilling: Studio 5000, SCADA systems, industrial communications, cloud/IIoT
-- Python proficient — can write scripts and data pipelines
-
-CURRENT STUDY CONTEXT:
-- Module ${state.currentModule} (Phase: ${phase.title}): ${mod.title}
-- Day ${state.currentDay}: ${dayData.title}
-- Topics today: ${dayData.topics.join('; ')}
-
-TUTOR GUIDELINES:
-- Be concise but thorough. No fluffy preambles.
-- Always tie abstract concepts to concrete industrial examples (specific products, signal types, real plant scenarios).
-- When explaining protocols or architectures, relate them to Allen-Bradley/Rockwell systems when relevant.
-- For code questions, use Python with industrial libraries (pycomm3, snap7, etc.) where appropriate.
-- If asked to quiz, make questions practical and scenario-based.
-- Format responses with markdown (headers, bold, code blocks) for readability.`;
-
-  state.chatHistory.push({ role: 'user', content: userMessage });
-
-  try {
-    const aiText = await callGroq(
-      state.apiKey,
-      systemPrompt,
-      userMessage,
-      state.chatHistory.slice(-10, -1)
-    );
-
-    state.chatHistory.push({ role: 'assistant', content: aiText });
-
-    // Replace thinking with real response
-    const thinkingEl = document.getElementById(thinkingId);
-    if (thinkingEl) {
-      thinkingEl.outerHTML = `
-        <div class="chat-msg ai">
-          <div class="chat-bubble ai-response">${markdownToHtml(aiText, '#378ADD')}</div>
-        </div>`;
-    }
-  } catch (err) {
-    const thinkingEl = document.getElementById(thinkingId);
-    if (thinkingEl) {
-      thinkingEl.outerHTML = `
-        <div class="chat-msg ai">
-          <div class="chat-bubble error">Error: ${err.message}</div>
-        </div>`;
-    }
-  }
-
-  chatMessages.scrollTop = chatMessages.scrollHeight;
-}
-
-// ── Navigation & UI ────────────────────────────────────────────
-function showView(viewName) {
-  state.currentView = viewName;
-  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
-  const target = document.getElementById(`view${viewName.charAt(0).toUpperCase() + viewName.slice(1)}`);
-  if (target) target.classList.add('active');
-}
-
-function updateStreakBadge() {
-  const streak = getStreak();
-  const badge = document.getElementById('streakBadge');
-  if (badge) {
-    badge.textContent = streak > 0 ? `🔥 ${streak}` : '';
-    badge.style.display = streak > 0 ? 'inline-flex' : 'none';
-  }
-}
-
-function showApiModal() {
-  document.getElementById('modalOverlay').classList.add('open');
-  const input = document.getElementById('apiKeyInput');
-  if (state.apiKey) input.value = state.apiKey;
-}
-
-function hideModal() {
-  document.getElementById('modalOverlay').classList.remove('open');
-}
-
-function checkApiKey() {
-  const status = document.getElementById('apiStatus');
-  if (state.apiKey) {
-    status.innerHTML = '<span class="status-ok">✓ API key saved</span>';
-  } else {
-    status.innerHTML = '<span class="status-warn">No API key — AI features disabled</span>';
-  }
-}
-
-function escapeHtml(text) {
-  const div = document.createElement('div');
-  div.appendChild(document.createTextNode(text));
-  return div.innerHTML;
-}
-
-// ── Event Bindings ─────────────────────────────────────────────
-function bindEvents() {
-  // Sidebar toggle
-  document.getElementById('sidebarToggle').addEventListener('click', () => {
-    document.getElementById('sidebar').classList.toggle('collapsed');
-    document.getElementById('main').classList.toggle('sidebar-collapsed');
+// ── Events ────────────────────────────────────────────────────
+function bindAll() {
+  document.getElementById('backBtn').addEventListener('click', () => { showScreen('screenHome'); renderHome(); });
+  document.getElementById('loadBtn').addEventListener('click', loadNotes);
+  document.getElementById('doneBtn').addEventListener('click', markDone);
+  document.getElementById('chatSend').addEventListener('click', () => sendChat(document.getElementById('chatInput').value));
+  document.getElementById('chatInput').addEventListener('keydown', e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendChat(e.target.value); } });
+  document.getElementById('tutorToggle').addEventListener('click', () => document.getElementById('tutorWrap').classList.add('open'));
+  document.getElementById('tutorClose').addEventListener('click', () => document.getElementById('tutorWrap').classList.remove('open'));
+  document.getElementById('homeSettingsBtn').addEventListener('click', openModal);
+  document.getElementById('studySettingsBtn').addEventListener('click', openModal);
+  document.getElementById('modalX').addEventListener('click', closeModal);
+  document.getElementById('modalBg').addEventListener('click', e => { if (e.target === e.currentTarget) closeModal(); });
+  document.getElementById('saveKey').addEventListener('click', () => {
+    const k = document.getElementById('apiInput').value.trim();
+    if (k) { S.apiKey = k; localStorage.setItem('sk', k); updateKeyStatus(); closeModal(); }
   });
-  document.getElementById('menuBtn').addEventListener('click', () => {
-    document.getElementById('sidebar').classList.toggle('mobile-open');
-  });
-
-  // Continue button on dashboard
-  document.getElementById('continueBtn').addEventListener('click', () => {
-    const next = getNextSession();
-    openSession(next.moduleId, next.day);
-  });
-
-  // Load notes
-  document.getElementById('loadNotesBtn').addEventListener('click', loadNotes);
-
-  // Mark done
-  document.getElementById('markDoneBtn').addEventListener('click', () => {
-    markComplete(state.currentModule, state.currentDay);
-    document.getElementById('markDoneBtn').textContent = '✓ Completed';
-    document.getElementById('markDoneBtn').disabled = true;
-    updateStreakBadge();
-    renderSidebar();
-
-    // Auto-advance after 1.5s
-    setTimeout(() => {
-      const mod = getModule(state.currentModule);
-      if (state.currentDay < mod.days.length) {
-        openSession(state.currentModule, state.currentDay + 1);
-      } else {
-        const nextModIdx = COURSE_DATA.modules.findIndex(m => m.id === state.currentModule);
-        if (nextModIdx < COURSE_DATA.modules.length - 1) {
-          const nextMod = COURSE_DATA.modules[nextModIdx + 1];
-          openSession(nextMod.id, 1);
-        } else {
-          showView('dashboard');
-          renderDashboard();
-        }
-      }
-    }, 1500);
-  });
-
-  // Quiz button
-  document.getElementById('quizBtn').addEventListener('click', loadQuiz);
-
-  // Chat send
-  document.getElementById('chatSend').addEventListener('click', () => {
-    sendChat(document.getElementById('chatInput').value);
-  });
-  document.getElementById('chatInput').addEventListener('keydown', (e) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      sendChat(document.getElementById('chatInput').value);
-    }
-  });
-
-  // Settings
-  document.getElementById('settingsBtn').addEventListener('click', showApiModal);
-  document.getElementById('modalClose').addEventListener('click', hideModal);
-  document.getElementById('modalOverlay').addEventListener('click', (e) => {
-    if (e.target === document.getElementById('modalOverlay')) hideModal();
-  });
-
-  // API key save
-  document.getElementById('saveApiKey').addEventListener('click', () => {
-    const key = document.getElementById('apiKeyInput').value.trim();
-    if (key) {
-      state.apiKey = key;
-      localStorage.setItem('scada_api_key', key);
-      checkApiKey();
-      hideModal();
-    }
-  });
-  document.getElementById('clearApiKey').addEventListener('click', () => {
-    state.apiKey = '';
-    localStorage.removeItem('scada_api_key');
-    document.getElementById('apiKeyInput').value = '';
-    checkApiKey();
+  document.getElementById('clearKey').addEventListener('click', () => {
+    S.apiKey = ''; localStorage.removeItem('sk');
+    document.getElementById('apiInput').value = '';
+    updateKeyStatus();
   });
 }
-
-// ── Boot ──────────────────────────────────────────────────────
-document.addEventListener('DOMContentLoaded', init);
