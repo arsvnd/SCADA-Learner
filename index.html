@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SCADA & IIoT Mastery — Ash's Study Platform</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- Sidebar -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <div class="logo">
+        <span class="logo-icon">⬡</span>
+        <span class="logo-text">SCADA/IIoT</span>
+      </div>
+      <button class="sidebar-toggle" id="sidebarToggle" title="Toggle sidebar">‹</button>
+    </div>
+
+    <div class="progress-summary">
+      <div class="progress-label">Overall Progress</div>
+      <div class="progress-bar-wrap">
+        <div class="progress-bar-fill" id="overallBar"></div>
+      </div>
+      <div class="progress-pct" id="overallPct">0%</div>
+    </div>
+
+    <nav class="module-nav" id="moduleNav"></nav>
+
+    <div class="sidebar-footer">
+      <button class="settings-btn" id="settingsBtn">⚙ API Settings</button>
+    </div>
+  </aside>
+
+  <!-- Main content -->
+  <main class="main" id="main">
+
+    <!-- Top bar -->
+    <header class="topbar">
+      <button class="menu-btn" id="menuBtn">☰</button>
+      <div class="topbar-title" id="topbarTitle">Welcome</div>
+      <div class="topbar-right">
+        <span class="streak-badge" id="streakBadge" title="Study streak"></span>
+      </div>
+    </header>
+
+    <!-- Dashboard view -->
+    <div class="view active" id="viewDashboard">
+      <div class="dashboard">
+        <div class="hero">
+          <div class="hero-eyebrow">Your SCADA & IIoT Journey</div>
+          <h1 class="hero-title">11 Modules.<br>12 Weeks.<br>Master Industrial Automation.</h1>
+          <p class="hero-sub">1–2 hours/day · 5 days/week · Study notes generated fresh each session</p>
+        </div>
+
+        <div class="stat-row">
+          <div class="stat-card">
+            <div class="stat-val" id="statDaysStudied">0</div>
+            <div class="stat-lbl">Days Studied</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-val" id="statModulesComplete">0/11</div>
+            <div class="stat-lbl">Modules Done</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-val" id="statDaysStreak">0</div>
+            <div class="stat-lbl">Day Streak</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-val" id="statNextUp">M1·D1</div>
+            <div class="stat-lbl">Next Session</div>
+          </div>
+        </div>
+
+        <div class="phases-grid" id="phasesGrid"></div>
+
+        <div class="start-cta">
+          <button class="cta-btn" id="continueBtn">▶ Start / Continue Learning</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Study view -->
+    <div class="view" id="viewStudy">
+      <div class="study-layout">
+        <!-- Study content panel -->
+        <div class="study-main">
+          <div class="session-header">
+            <div class="session-meta" id="sessionMeta">Module 1 · Day 1</div>
+            <div class="session-title" id="sessionTitle">Loading session...</div>
+            <div class="session-tags" id="sessionTags"></div>
+          </div>
+
+          <div class="content-area" id="contentArea">
+            <div class="content-placeholder">
+              <div class="placeholder-icon">⬡</div>
+              <p>Click "Load Today's Notes" to generate your study session.</p>
+            </div>
+          </div>
+
+          <div class="session-actions">
+            <button class="action-btn secondary" id="loadNotesBtn">⚡ Load Today's Notes</button>
+            <button class="action-btn primary" id="markDoneBtn" style="display:none">✓ Mark Session Complete</button>
+            <button class="action-btn secondary" id="quizBtn" style="display:none">? Quick Quiz</button>
+          </div>
+        </div>
+
+        <!-- AI Tutor panel -->
+        <div class="tutor-panel" id="tutorPanel">
+          <div class="tutor-header">
+            <span class="tutor-title">⬡ AI Tutor</span>
+            <span class="tutor-context" id="tutorContext"></span>
+          </div>
+          <div class="chat-messages" id="chatMessages">
+            <div class="chat-welcome">
+              <p>Ask me anything about this module. I know your background in controls and automation — I'll tailor explanations to what you already know.</p>
+            </div>
+          </div>
+          <div class="chat-input-wrap">
+            <textarea class="chat-input" id="chatInput" placeholder="Ask a question about this topic..." rows="2"></textarea>
+            <button class="chat-send" id="chatSend">↑</button>
+          </div>
+          <div class="quick-prompts" id="quickPrompts"></div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- API Settings Modal -->
+  <div class="modal-overlay" id="modalOverlay">
+    <div class="modal">
+      <div class="modal-header">
+        <span>API Settings</span>
+        <button class="modal-close" id="modalClose">✕</button>
+      </div>
+      <div class="modal-body">
+        <p class="modal-desc">Enter your Anthropic API key to enable the AI tutor. Your key is stored only in your browser (localStorage) and never sent anywhere except directly to Anthropic's API.</p>
+        <label class="field-label">Anthropic API Key</label>
+        <input type="password" class="api-input" id="apiKeyInput" placeholder="sk-ant-...">
+        <div class="modal-actions">
+          <button class="action-btn primary" id="saveApiKey">Save Key</button>
+          <button class="action-btn secondary" id="clearApiKey">Clear Key</button>
+        </div>
+        <div class="api-status" id="apiStatus"></div>
+        <div class="modal-note">
+          <strong>Privacy:</strong> Your API key stays in your browser. This app makes calls directly to <code>api.anthropic.com</code> from your browser. Get a key at <a href="https://console.anthropic.com" target="_blank">console.anthropic.com</a>.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="data.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
