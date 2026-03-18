@@ -1,47 +1,38 @@
 // ============================================================
-// SCADA/IIoT Learning App — Main Application (Gemini API)
+// SCADA/IIoT Learning App — Main Application (Groq API)
 // ============================================================
 
-const GEMINI_MODEL = 'gemini-1.5-flash';
-function geminiUrl(key) {
-  return `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${key}`;
-}
+const GROQ_API = 'https://api.groq.com/openai/v1/chat/completions';
+const GROQ_MODEL = 'llama-3.3-70b-versatile';
 
-async function callGemini(apiKey, systemPrompt, userMessage, history = []) {
-  // Build contents array: system turn + history + new user message
-  const contents = [];
+async function callGroq(apiKey, systemPrompt, userMessage, history = []) {
+  const messages = [
+    { role: 'system', content: systemPrompt },
+    ...history.map(m => ({ role: m.role === 'assistant' ? 'assistant' : 'user', content: m.content })),
+    { role: 'user', content: userMessage }
+  ];
 
-  // Gemini doesn't have a system role — prepend as first user/model exchange
-  contents.push({ role: 'user', parts: [{ text: systemPrompt }] });
-  contents.push({ role: 'model', parts: [{ text: 'Understood. I am ready to help.' }] });
-
-  // Add conversation history (already in {role, content} format)
-  for (const msg of history) {
-    contents.push({
-      role: msg.role === 'assistant' ? 'model' : 'user',
-      parts: [{ text: msg.content }]
-    });
-  }
-
-  // Add current user message
-  contents.push({ role: 'user', parts: [{ text: userMessage }] });
-
-  const response = await fetch(geminiUrl(apiKey), {
+  const response = await fetch(GROQ_API, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${apiKey}`
+    },
     body: JSON.stringify({
-      contents,
-      generationConfig: { maxOutputTokens: 2500, temperature: 0.7 }
+      model: GROQ_MODEL,
+      max_tokens: 2500,
+      temperature: 0.7,
+      messages
     })
   });
 
   if (!response.ok) {
     const err = await response.json();
-    throw new Error(err.error?.message || `Gemini API error ${response.status}`);
+    throw new Error(err.error?.message || `Groq API error ${response.status}`);
   }
 
   const data = await response.json();
-  return data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+  return data.choices?.[0]?.message?.content || '';
 }
 
 // ── State ────────────────────────────────────────────────────
@@ -374,7 +365,7 @@ async function loadNotes() {
   const prompt = buildNotesPrompt(mod, dayData, phase);
 
   try {
-    const text = await callGemini(state.apiKey, 'You are an expert SCADA/IIoT instructor.', prompt);
+    const text = await callGroq(state.apiKey, 'You are an expert SCADA/IIoT instructor.', prompt);
     renderNotes(text, phase);
 
     state.notesLoaded = true;
@@ -387,7 +378,7 @@ async function loadNotes() {
     }
 
   } catch (err) {
-    contentArea.innerHTML = `<div class="error-msg"><strong>Error loading notes:</strong> ${err.message}<br><br>Check your API key in Settings.</div>`;
+    contentArea.innerHTML = `<div class="error-msg"><strong>Error loading notes:</strong> ${err.message}<br><br>Check your Groq API key in Settings. Get a free key at <a href="https://console.groq.com" target="_blank" style="color:#378ADD">console.groq.com</a>.</div>`;
   }
 }
 
@@ -547,11 +538,11 @@ TUTOR GUIDELINES:
   state.chatHistory.push({ role: 'user', content: userMessage });
 
   try {
-    const aiText = await callGemini(
+    const aiText = await callGroq(
       state.apiKey,
       systemPrompt,
       userMessage,
-      state.chatHistory.slice(-10, -1) // history without the message we just pushed
+      state.chatHistory.slice(-10, -1)
     );
 
     state.chatHistory.push({ role: 'assistant', content: aiText });
