@@ -1,0 +1,1812 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Studio 5000 & ControlLogix — Complete Technical Reference</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:ital,wght@0,300;0,400;0,600;0,700;1,300&family=IBM+Plex+Serif:wght@400;600&display=swap');
+
+:root {
+–bg: #0d1117;
+–surface: #161b22;
+–surface2: #1c2333;
+–border: #2d3748;
+–accent: #f97316;
+–accent2: #3b82f6;
+–accent3: #10b981;
+–accent4: #a855f7;
+–warn: #fbbf24;
+–text: #e6edf3;
+–text-muted: #8b949e;
+–text-dim: #4a5568;
+–tag-bg: #1e3a5f;
+–tag-text: #60a5fa;
+}
+
+- { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+background: var(–bg);
+color: var(–text);
+font-family: ‘IBM Plex Sans’, sans-serif;
+font-size: 15px;
+line-height: 1.7;
+min-height: 100vh;
+}
+
+/* –– LAYOUT –– */
+.layout { display: flex; min-height: 100vh; }
+
+nav {
+width: 260px;
+min-width: 260px;
+background: var(–surface);
+border-right: 1px solid var(–border);
+padding: 0;
+position: sticky;
+top: 0;
+height: 100vh;
+overflow-y: auto;
+z-index: 100;
+}
+
+nav::-webkit-scrollbar { width: 4px; }
+nav::-webkit-scrollbar-track { background: transparent; }
+nav::-webkit-scrollbar-thumb { background: var(–border); border-radius: 2px; }
+
+.nav-header {
+padding: 24px 20px 16px;
+border-bottom: 1px solid var(–border);
+background: var(–surface);
+position: sticky;
+top: 0;
+z-index: 10;
+}
+
+.nav-logo {
+font-family: ‘IBM Plex Mono’, monospace;
+font-size: 11px;
+color: var(–accent);
+letter-spacing: 0.15em;
+text-transform: uppercase;
+margin-bottom: 4px;
+}
+
+.nav-title {
+font-family: ‘IBM Plex Serif’, serif;
+font-size: 14px;
+color: var(–text);
+font-weight: 600;
+line-height: 1.3;
+}
+
+.nav-section {
+padding: 16px 0 8px 20px;
+font-family: ‘IBM Plex Mono’, monospace;
+font-size: 9px;
+letter-spacing: 0.2em;
+color: var(–text-dim);
+text-transform: uppercase;
+}
+
+nav a {
+display: block;
+padding: 7px 20px;
+color: var(–text-muted);
+text-decoration: none;
+font-size: 13px;
+transition: all 0.15s;
+border-left: 2px solid transparent;
+line-height: 1.4;
+}
+
+nav a:hover { color: var(–text); background: var(–surface2); border-left-color: var(–accent); }
+nav a.active { color: var(–accent); border-left-color: var(–accent); background: rgba(249,115,22,0.07); }
+
+main {
+flex: 1;
+max-width: 900px;
+padding: 60px 56px;
+overflow-x: hidden;
+}
+
+/* –– TYPOGRAPHY –– */
+.doc-header {
+margin-bottom: 56px;
+padding-bottom: 32px;
+border-bottom: 1px solid var(–border);
+}
+
+.doc-eyebrow {
+font-family: ‘IBM Plex Mono’, monospace;
+font-size: 11px;
+letter-spacing: 0.2em;
+color: var(–accent);
+text-transform: uppercase;
+margin-bottom: 12px;
+}
+
+.doc-title {
+font-family: ‘IBM Plex Serif’, serif;
+font-size: 42px;
+font-weight: 600;
+line-height: 1.15;
+color: var(–text);
+margin-bottom: 16px;
+}
+
+.doc-subtitle {
+font-size: 17px;
+color: var(–text-muted);
+font-weight: 300;
+max-width: 560px;
+line-height: 1.6;
+}
+
+.doc-meta {
+display: flex;
+gap: 16px;
+margin-top: 20px;
+flex-wrap: wrap;
+}
+
+.meta-tag {
+background: var(–tag-bg);
+color: var(–tag-text);
+font-family: ‘IBM Plex Mono’, monospace;
+font-size: 11px;
+padding: 4px 10px;
+border-radius: 3px;
+letter-spacing: 0.05em;
+}
+
+section { margin-bottom: 64px; }
+
+.section-anchor {
+display: block;
+position: relative;
+top: -80px;
+visibility: hidden;
+}
+
+h2 {
+font-family: ‘IBM Plex Serif’, serif;
+font-size: 26px;
+font-weight: 600;
+color: var(–text);
+margin-bottom: 20px;
+padding-bottom: 12px;
+border-bottom: 1px solid var(–border);
+display: flex;
+align-items: center;
+gap: 12px;
+}
+
+h2 .section-num {
+font-family: ‘IBM Plex Mono’, monospace;
+font-size: 13px;
+color: var(–accent);
+font-weight: 400;
+min-width: 32px;
+}
+
+h3 {
+font-family: ‘IBM Plex Sans’, sans-serif;
+font-size: 17px;
+font-weight: 600;
+color: var(–text);
+margin: 28px 0 10px;
+display: flex;
+align-items: center;
+gap: 8px;
+}
+
+h3::before {
+content: ‘’;
+display: block;
+width: 3px;
+height: 16px;
+background: var(–accent);
+border-radius: 2px;
+flex-shrink: 0;
+}
+
+h4 {
+font-size: 14px;
+font-weight: 600;
+color: var(–accent2);
+text-transform: uppercase;
+letter-spacing: 0.08em;
+margin: 20px 0 8px;
+font-family: ‘IBM Plex Mono’, monospace;
+}
+
+p { color: var(–text-muted); margin-bottom: 12px; }
+strong { color: var(–text); font-weight: 600; }
+em { color: var(–warn); font-style: normal; font-weight: 600; }
+
+/* –– COMPONENTS –– */
+.callout {
+border-left: 3px solid;
+padding: 14px 18px;
+margin: 20px 0;
+border-radius: 0 6px 6px 0;
+font-size: 14px;
+}
+
+.callout.tip { border-color: var(–accent3); background: rgba(16,185,129,0.06); }
+.callout.warn { border-color: var(–warn); background: rgba(251,191,36,0.06); }
+.callout.info { border-color: var(–accent2); background: rgba(59,130,246,0.06); }
+.callout.critical { border-color: #ef4444; background: rgba(239,68,68,0.06); }
+
+.callout-label {
+font-family: ‘IBM Plex Mono’, monospace;
+font-size: 10px;
+letter-spacing: 0.15em;
+text-transform: uppercase;
+margin-bottom: 6px;
+font-weight: 600;
+}
+
+.callout.tip .callout-label { color: var(–accent3); }
+.callout.warn .callout-label { color: var(–warn); }
+.callout.info .callout-label { color: var(–accent2); }
+.callout.critical .callout-label { color: #ef4444; }
+
+.callout p { margin: 0; color: var(–text-muted); }
+
+code {
+font-family: ‘IBM Plex Mono’, monospace;
+font-size: 12.5px;
+background: var(–surface2);
+color: #79c0ff;
+padding: 2px 6px;
+border-radius: 3px;
+border: 1px solid var(–border);
+}
+
+pre {
+background: var(–surface2);
+border: 1px solid var(–border);
+border-radius: 8px;
+padding: 20px 24px;
+overflow-x: auto;
+margin: 16px 0;
+font-family: ‘IBM Plex Mono’, monospace;
+font-size: 13px;
+line-height: 1.6;
+color: #e6edf3;
+}
+
+pre .comment { color: var(–text-dim); }
+pre .keyword { color: #f97316; }
+pre .value { color: #79c0ff; }
+pre .string { color: #a5d6ff; }
+pre .label { color: var(–accent3); }
+
+table {
+width: 100%;
+border-collapse: collapse;
+margin: 20px 0;
+font-size: 13px;
+}
+
+th {
+background: var(–surface2);
+padding: 10px 14px;
+text-align: left;
+font-family: ‘IBM Plex Mono’, monospace;
+font-size: 11px;
+letter-spacing: 0.1em;
+text-transform: uppercase;
+color: var(–text-muted);
+border: 1px solid var(–border);
+}
+
+td {
+padding: 10px 14px;
+border: 1px solid var(–border);
+color: var(–text-muted);
+vertical-align: top;
+}
+
+td:first-child { color: var(–text); font-family: ‘IBM Plex Mono’, monospace; font-size: 12.5px; }
+
+tr:hover td { background: rgba(255,255,255,0.02); }
+
+/* CARDS */
+.card-grid {
+display: grid;
+grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+gap: 12px;
+margin: 16px 0;
+}
+
+.card {
+background: var(–surface);
+border: 1px solid var(–border);
+border-radius: 8px;
+padding: 16px;
+transition: border-color 0.2s;
+}
+
+.card:hover { border-color: var(–accent); }
+
+.card-icon {
+font-size: 22px;
+margin-bottom: 8px;
+}
+
+.card-name {
+font-family: ‘IBM Plex Mono’, monospace;
+font-size: 12px;
+color: var(–accent);
+margin-bottom: 4px;
+}
+
+.card-desc {
+font-size: 12px;
+color: var(–text-muted);
+line-height: 1.5;
+}
+
+/* DIAGRAM */
+.diagram {
+background: var(–surface2);
+border: 1px solid var(–border);
+border-radius: 8px;
+padding: 24px;
+margin: 20px 0;
+font-family: ‘IBM Plex Mono’, monospace;
+font-size: 12px;
+line-height: 1.8;
+color: var(–text-muted);
+overflow-x: auto;
+white-space: pre;
+}
+
+.diag-box {
+display: inline-block;
+border: 1px solid var(–border);
+padding: 2px 8px;
+border-radius: 3px;
+color: var(–text);
+}
+
+.diag-accent { color: var(–accent); }
+.diag-blue { color: var(–accent2); }
+.diag-green { color: var(–accent3); }
+
+/* STEPS */
+.steps { list-style: none; margin: 16px 0; }
+
+.steps li {
+display: flex;
+gap: 16px;
+margin-bottom: 16px;
+align-items: flex-start;
+}
+
+.step-num {
+background: var(–accent);
+color: #000;
+font-family: ‘IBM Plex Mono’, monospace;
+font-size: 11px;
+font-weight: 600;
+width: 24px;
+height: 24px;
+border-radius: 50%;
+display: flex;
+align-items: center;
+justify-content: center;
+flex-shrink: 0;
+margin-top: 2px;
+}
+
+.step-content { flex: 1; }
+.step-title { font-weight: 600; color: var(–text); margin-bottom: 4px; }
+.step-desc { font-size: 13px; color: var(–text-muted); }
+
+/* BADGES */
+.badge {
+display: inline-block;
+font-family: ‘IBM Plex Mono’, monospace;
+font-size: 10px;
+padding: 2px 7px;
+border-radius: 12px;
+font-weight: 600;
+letter-spacing: 0.05em;
+margin-left: 8px;
+}
+
+.badge-orange { background: rgba(249,115,22,0.15); color: var(–accent); border: 1px solid rgba(249,115,22,0.3); }
+.badge-blue { background: rgba(59,130,246,0.15); color: var(–accent2); border: 1px solid rgba(59,130,246,0.3); }
+.badge-green { background: rgba(16,185,129,0.15); color: var(–accent3); border: 1px solid rgba(16,185,129,0.3); }
+.badge-purple { background: rgba(168,85,247,0.15); color: var(–accent4); border: 1px solid rgba(168,85,247,0.3); }
+
+/* ACCORDION */
+details {
+background: var(–surface);
+border: 1px solid var(–border);
+border-radius: 8px;
+margin: 10px 0;
+overflow: hidden;
+}
+
+summary {
+padding: 14px 18px;
+cursor: pointer;
+font-weight: 600;
+color: var(–text);
+font-size: 14px;
+list-style: none;
+display: flex;
+align-items: center;
+justify-content: space-between;
+user-select: none;
+}
+
+summary::after {
+content: ‘›’;
+font-size: 18px;
+color: var(–text-dim);
+transition: transform 0.2s;
+}
+
+details[open] summary::after { transform: rotate(90deg); }
+
+details[open] summary { border-bottom: 1px solid var(–border); }
+
+.details-body {
+padding: 16px 18px;
+font-size: 13.5px;
+color: var(–text-muted);
+line-height: 1.7;
+}
+
+.details-body p { margin-bottom: 10px; }
+.details-body p:last-child { margin-bottom: 0; }
+
+/* TOC progress */
+.progress-bar {
+position: fixed;
+top: 0;
+left: 0;
+height: 2px;
+background: var(–accent);
+z-index: 1000;
+transition: width 0.1s;
+}
+
+ul.bullet { padding-left: 20px; margin: 10px 0; }
+ul.bullet li { color: var(–text-muted); margin-bottom: 6px; font-size: 14px; }
+ul.bullet li::marker { color: var(–accent); }
+
+.two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 16px 0; }
+@media (max-width: 700px) { .two-col { grid-template-columns: 1fr; } }
+
+.highlight-box {
+background: linear-gradient(135deg, rgba(249,115,22,0.08), rgba(59,130,246,0.05));
+border: 1px solid rgba(249,115,22,0.2);
+border-radius: 8px;
+padding: 20px 24px;
+margin: 20px 0;
+}
+
+.hl-title {
+font-family: ‘IBM Plex Mono’, monospace;
+font-size: 11px;
+color: var(–accent);
+letter-spacing: 0.15em;
+text-transform: uppercase;
+margin-bottom: 10px;
+}
+
+.divider {
+border: none;
+border-top: 1px solid var(–border);
+margin: 32px 0;
+}
+
+@media (max-width: 900px) {
+nav { display: none; }
+main { padding: 32px 20px; }
+.doc-title { font-size: 28px; }
+.two-col { grid-template-columns: 1fr; }
+}
+</style>
+
+</head>
+<body>
+
+<div class="progress-bar" id="progress"></div>
+
+<div class="layout">
+
+<!-- NAVIGATION -->
+
+<nav>
+  <div class="nav-header">
+    <div class="nav-logo">Rockwell Automation</div>
+    <div class="nav-title">Studio 5000 &<br>ControlLogix Reference</div>
+  </div>
+
+  <div class="nav-section">Foundations</div>
+  <a href="#overview">1. Overview & Ecosystem</a>
+  <a href="#hardware">2. ControlLogix Hardware</a>
+  <a href="#backplane">3. Backplane & Chassis</a>
+
+  <div class="nav-section">Software</div>
+  <a href="#studio5000">4. Studio 5000 IDE</a>
+  <a href="#project">5. Project Structure</a>
+  <a href="#tags">6. Tag Database</a>
+
+  <div class="nav-section">Programming</div>
+  <a href="#tasks">7. Tasks, Programs & Routines</a>
+  <a href="#languages">8. Programming Languages</a>
+  <a href="#ladder">9. Ladder Logic Deep Dive</a>
+  <a href="#instructions">10. Key Instructions</a>
+
+  <div class="nav-section">Networks</div>
+  <a href="#networks">11. Industrial Networks</a>
+  <a href="#ethernetip">12. EtherNet/IP</a>
+  <a href="#io">13. I/O Configuration</a>
+
+  <div class="nav-section">Advanced</div>
+  <a href="#motion">14. Motion Control</a>
+  <a href="#safety">15. Safety PLCs</a>
+  <a href="#produced">16. Produced/Consumed Tags</a>
+  <a href="#aoi">17. Add-On Instructions</a>
+  <a href="#udt">18. User-Defined Types</a>
+
+  <div class="nav-section">Practice</div>
+  <a href="#workflow">19. Engineering Workflow</a>
+  <a href="#diagnostics">20. Diagnostics & Faults</a>
+  <a href="#study">21. Study Roadmap</a>
+</nav>
+
+<!-- MAIN CONTENT -->
+
+<main id="main">
+
+  <!-- HEADER -->
+
+  <div class="doc-header">
+    <div class="doc-eyebrow">Complete Technical Reference</div>
+    <h1 class="doc-title">Studio 5000 &<br>ControlLogix Architecture</h1>
+    <p class="doc-subtitle">Everything you need to go from fundamentals to confident engineer — hardware architecture, software structure, programming models, networks, and advanced features.</p>
+    <div class="doc-meta">
+      <span class="meta-tag">Logix 5000 v32+</span>
+      <span class="meta-tag">ControlLogix 5580</span>
+      <span class="meta-tag">EtherNet/IP</span>
+      <span class="meta-tag">IEC 61131-3</span>
+    </div>
+  </div>
+
+  <!-- SECTION 1: OVERVIEW -->
+
+  <section>
+    <span class="section-anchor" id="overview"></span>
+    <h2><span class="section-num">01</span> Overview & Ecosystem</h2>
+
+```
+<p>Rockwell Automation's <strong>Logix platform</strong> is the dominant PLC ecosystem in North America. Understanding how its pieces fit together is your first priority before touching a single rung of ladder logic.</p>
+
+<h3>The Logix Family</h3>
+<p>Multiple controller families share the same software environment (Studio 5000) and programming language (Logix 5000). They differ in performance, form factor, and features:</p>
+
+<table>
+  <thead><tr><th>Controller</th><th>Target Application</th><th>Key Trait</th></tr></thead>
+  <tbody>
+    <tr><td>ControlLogix</td><td>Large, complex, multi-axis</td><td>Modular chassis; highest performance</td></tr>
+    <tr><td>CompactLogix</td><td>Mid-range, space-constrained</td><td>Built-in I/O, no separate chassis needed</td></tr>
+    <tr><td>GuardLogix</td><td>Safety-critical applications</td><td>SIL 2/3, PLe certified; dual-channel safety</td></tr>
+    <tr><td>Micro800</td><td>Small machines, simple logic</td><td>Uses Connected Components Workbench, NOT Studio 5000</td></tr>
+    <tr><td>SoftLogix</td><td>PC-based control</td><td>Runs Logix on a standard Windows PC</td></tr>
+  </tbody>
+</table>
+
+<div class="callout info">
+  <div class="callout-label">Focus Point</div>
+  <p>Your primary target is <strong>ControlLogix (CLX)</strong> with Studio 5000. Everything in this guide applies. CompactLogix uses the same software and nearly identical architecture — once you know one, you know both.</p>
+</div>
+
+<h3>Studio 5000 vs. RSLogix 5000</h3>
+<p>These are the same software at different versions. RSLogix 5000 was rebranded to <strong>Studio 5000 Logix Designer</strong> around v21. You may see both names in documentation and job postings — they refer to the same IDE. Always target Studio 5000 v32 or higher in your studies.</p>
+
+<div class="card-grid">
+  <div class="card">
+    <div class="card-icon">🖥️</div>
+    <div class="card-name">Studio 5000</div>
+    <div class="card-desc">The IDE. Programming, configuration, tag editing, and diagnostics all live here.</div>
+  </div>
+  <div class="card">
+    <div class="card-icon">🔧</div>
+    <div class="card-name">FactoryTalk View</div>
+    <div class="card-desc">Rockwell's HMI software — ME (Machine Edition) for panels, SE (Site Edition) for SCADA.</div>
+  </div>
+  <div class="card">
+    <div class="card-icon">🌐</div>
+    <div class="card-name">FactoryTalk Linx</div>
+    <div class="card-desc">Communication driver layer. Manages connections between software and hardware.</div>
+  </div>
+  <div class="card">
+    <div class="card-icon">📡</div>
+    <div class="card-name">RSLinx Classic</div>
+    <div class="card-desc">Legacy comm driver — still widely deployed. Linx Gateway for OPC-DA.</div>
+  </div>
+</div>
+```
+
+  </section>
+
+  <!-- SECTION 2: HARDWARE -->
+
+  <section>
+    <span class="section-anchor" id="hardware"></span>
+    <h2><span class="section-num">02</span> ControlLogix Hardware</h2>
+
+```
+<p>ControlLogix is a <strong>modular</strong> system. The chassis is a passive backplane; you populate it with modules based on your application's needs. There is no fixed I/O on the controller itself.</p>
+
+<h3>The 1756 Platform</h3>
+<p>All ControlLogix hardware carries a <strong>1756</strong> catalog prefix. This is your key to identifying the family in documentation, drawings, and vendor quotes.</p>
+
+<table>
+  <thead><tr><th>Catalog #</th><th>Component</th><th>Notes</th></tr></thead>
+  <tbody>
+    <tr><td>1756-L8x</td><td>ControlLogix 5580 CPU</td><td>Current generation — L81E, L82E, L83E, L84E (performance tiers)</td></tr>
+    <tr><td>1756-L7x</td><td>ControlLogix 5570 CPU</td><td>Previous gen — L71, L72, L73, L74, L75 — still very common in industry</td></tr>
+    <tr><td>1756-EN2T</td><td>EtherNet/IP bridge module</td><td>Adds EtherNet/IP port to chassis for distributed I/O</td></tr>
+    <tr><td>1756-IB16</td><td>24VDC Digital Input (16-pt)</td><td>Sinking input; IB = Input, B = 24VDC</td></tr>
+    <tr><td>1756-OB16E</td><td>24VDC Digital Output (16-pt)</td><td>E suffix = electronically protected (fused outputs)</td></tr>
+    <tr><td>1756-IF8</td><td>Analog Input (8-ch)</td><td>4-20mA or 0-10V, configurable per channel</td></tr>
+    <tr><td>1756-OF8</td><td>Analog Output (8-ch)</td><td>Current or voltage output, configurable</td></tr>
+    <tr><td>1756-PA72</td><td>Power Supply</td><td>120/240VAC input; A = AC, 72 = 72W capacity</td></tr>
+    <tr><td>1756-A7</td><td>7-slot Chassis</td><td>A4, A7, A10, A13, A17 — slot count variants</td></tr>
+    <tr><td>1756-RM2</td><td>Redundancy Module</td><td>Used in ControlLogix redundancy configurations</td></tr>
+  </tbody>
+</table>
+
+<h3>Catalog Number Decoding</h3>
+<div class="highlight-box">
+  <div class="hl-title">How to Read a Module Number</div>
+  <p style="font-family:'IBM Plex Mono',monospace;font-size:13px;color:var(--text);">1756 — <span style="color:var(--accent)">I</span><span style="color:var(--accent2)">B</span><span style="color:var(--accent3)">16</span><span style="color:var(--accent4)">D</span></p>
+  <ul class="bullet" style="margin-top:10px;">
+    <li><strong>1756</strong> — ControlLogix platform</li>
+    <li><span style="color:var(--accent)">I</span> — Input module (O = Output, IF = Analog Input, OF = Analog Output)</li>
+    <li><span style="color:var(--accent2)">B</span> — Voltage class (B = 24VDC, A = 120VAC, D = 125VDC)</li>
+    <li><span style="color:var(--accent3)">16</span> — Point count</li>
+    <li><span style="color:var(--accent4)">D</span> — Feature suffix (D = diagnostics, E = electronically fused)</li>
+  </ul>
+</div>
+
+<h3>CPU Generations: L7x vs. L8x</h3>
+<div class="two-col">
+  <div class="card">
+    <div class="card-name">5570 (L7x) — Legacy</div>
+    <div class="card-desc" style="margin-top:8px;">
+      • Up to 8MB user memory<br>
+      • Single EtherNet/IP port on CPU<br>
+      • SD card for firmware/project<br>
+      • Still on ~60% of installed base<br>
+      • Your most common site encounter
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-name">5580 (L8x) — Current</div>
+    <div class="card-desc" style="margin-top:8px;">
+      • Up to 40MB user memory<br>
+      • Dual EtherNet/IP ports (embedded switch)<br>
+      • USB and SD card<br>
+      • Faster task execution<br>
+      • What new projects specify
+    </div>
+  </div>
+</div>
+
+<div class="callout tip">
+  <div class="callout-label">Pro Tip</div>
+  <p>Learn the <strong>L71/L72/L73</strong> (5570) first — they're everywhere. The programming model is identical between generations; only the hardware specs differ.</p>
+</div>
+```
+
+  </section>
+
+  <!-- SECTION 3: BACKPLANE -->
+
+  <section>
+    <span class="section-anchor" id="backplane"></span>
+    <h2><span class="section-num">03</span> Backplane & Chassis</h2>
+
+```
+<p>The <strong>backplane</strong> is the passive communication and power bus built into the chassis. All modules plug into it and communicate with the CPU across it. Understanding backplane mechanics is critical for understanding I/O scan times and data exchange.</p>
+
+<h3>Backplane Communication</h3>
+<p>The ControlLogix backplane uses a <strong>scheduled, deterministic</strong> communication model. Data is not polled randomly — the CPU schedules each module's data exchange based on the Requested Packet Interval (RPI) configured in your I/O tree.</p>
+
+<div class="diagram">┌──────────────────────────────────────────────────────────┐
+```
+
+│                    1756 CHASSIS                          │
+│                                                          │
+│  ┌──────┐  ┌──────┐  ┌──────┐  ┌──────┐  ┌──────┐     │
+│  │ CPU  │  │ EN2T │  │ IB16 │  │ OB16 │  │  IF8 │     │
+│  │ L73  │  │Bridge│  │  DI  │  │  DO  │  │  AI  │     │
+│  └──┬───┘  └──┬───┘  └──┬───┘  └──┬───┘  └──┬───┘     │
+│     │         │         │         │         │          │
+│  ═══╪═════════╪═════════╪═════════╪═════════╪═══════   │
+│     │      BACKPLANE BUS (data + power)      │          │
+└─────┴─────────┴─────────┴─────────┴─────────┴──────────┘
+↑
+Slot 0 = CPU always occupies slot 0
+Power supply mounts to left of chassis (separate slot)</div>
+
+```
+<h3>Local vs. Remote I/O</h3>
+<table>
+  <thead><tr><th>Type</th><th>Location</th><th>Communication</th><th>Latency</th></tr></thead>
+  <tbody>
+    <tr><td>Local I/O</td><td>Same chassis as CPU</td><td>Backplane</td><td>~1ms RPI typical</td></tr>
+    <tr><td>Remote I/O (same rack)</td><td>Expansion chassis, same panel</td><td>EtherNet/IP or ControlNet</td><td>Configurable RPI, typically 5-20ms</td></tr>
+    <tr><td>Distributed I/O</td><td>Field location (remote panel)</td><td>EtherNet/IP</td><td>Configurable RPI, typically 10-100ms</td></tr>
+  </tbody>
+</table>
+
+<h3>Requested Packet Interval (RPI)</h3>
+<p>The RPI is one of the most important concepts in ControlLogix I/O. It defines <strong>how often the I/O module sends its data to the controller</strong> (inputs) or receives data from the controller (outputs). It is set per-module in the I/O configuration.</p>
+
+<ul class="bullet">
+  <li><strong>RPI ≠ Task scan time</strong> — RPI is asynchronous; data arrives in the tag database whenever the module sends it, regardless of when your task runs</li>
+  <li>Setting RPI too low wastes network bandwidth and CPU overhead</li>
+  <li>Setting RPI too high means stale data in your tags</li>
+  <li>Typical digital I/O: 5–20ms RPI; Analog: 10–50ms; Motion: 1–4ms</li>
+</ul>
+
+<div class="callout warn">
+  <div class="callout-label">Important</div>
+  <p>RPI does not guarantee your program sees every state change. If a signal pulses and recovers between two RPI updates, your CPU <em>will not see it</em>. For pulse-capture applications, use HSC (High Speed Counter) modules or motion encoder inputs.</p>
+</div>
+```
+
+  </section>
+
+  <!-- SECTION 4: STUDIO 5000 -->
+
+  <section>
+    <span class="section-anchor" id="studio5000"></span>
+    <h2><span class="section-num">04</span> Studio 5000 Logix Designer IDE</h2>
+
+```
+<p>Studio 5000 Logix Designer is your primary engineering tool. It handles <strong>all</strong> aspects of ControlLogix: hardware configuration, tag database, program editing, online monitoring, diagnostics, and firmware updates.</p>
+
+<h3>Key Workspace Panels</h3>
+<div class="card-grid">
+  <div class="card">
+    <div class="card-name">Controller Organizer</div>
+    <div class="card-desc">Left-side tree. Shows Tasks → Programs → Routines. Your program hierarchy lives here.</div>
+  </div>
+  <div class="card">
+    <div class="card-name">I/O Configuration</div>
+    <div class="card-desc">Hardware tree — chassis, modules, bridges. Configure RPIs, module properties, connection parameters here.</div>
+  </div>
+  <div class="card">
+    <div class="card-name">Tag Editor</div>
+    <div class="card-desc">Spreadsheet view of all tags. Filter by scope (Controller vs Program), type, and usage.</div>
+  </div>
+  <div class="card">
+    <div class="card-name">Routine Editor</div>
+    <div class="card-desc">Where you write code. Supports Ladder, FBD, ST, SFC simultaneously.</div>
+  </div>
+  <div class="card">
+    <div class="card-name">Controller Properties</div>
+    <div class="card-desc">CPU settings: revision, memory, redundancy mode, major/minor faults.</div>
+  </div>
+  <div class="card">
+    <div class="card-name">Logix Designer Tasks</div>
+    <div class="card-desc">Continuous, Periodic, and Event tasks — define scan rates and priorities here.</div>
+  </div>
+</div>
+
+<h3>Online vs. Offline</h3>
+<table>
+  <thead><tr><th>Mode</th><th>Description</th><th>What You Can Do</th></tr></thead>
+  <tbody>
+    <tr><td>Offline</td><td>Editing project file only</td><td>Full edits, no connection to hardware required</td></tr>
+    <tr><td>Online</td><td>Connected to running controller</td><td>Monitor tags, online edits, force I/O, fault diagnostics</td></tr>
+    <tr><td>Remote Run</td><td>Online; controller running</td><td>Monitor + online edits pending</td></tr>
+    <tr><td>Remote Program</td><td>Online; controller stopped</td><td>Full download allowed; outputs de-energized</td></tr>
+    <tr><td>Test</td><td>Special mode; outputs inhibited</td><td>Logic runs but outputs don't energize — safe for bench testing</td></tr>
+  </tbody>
+</table>
+
+<h3>Online Edits</h3>
+<p>One of Studio 5000's most powerful features is <strong>online editing</strong> — modifying code while the controller is running without stopping production. The workflow:</p>
+<ol class="steps">
+  <li><div class="step-num">1</div><div class="step-content"><div class="step-title">Enter Edit Mode</div><div class="step-desc">Right-click routine → "Edit Mode On". A pending edit zone appears.</div></div></li>
+  <li><div class="step-num">2</div><div class="step-content"><div class="step-title">Make Your Changes</div><div class="step-desc">Add/modify rungs in the pending edit area. Changes are not live yet.</div></div></li>
+  <li><div class="step-num">3</div><div class="step-content"><div class="step-title">Assemble</div><div class="step-desc">Ctrl+Shift+A to compile. Check for errors before accepting.</div></div></li>
+  <li><div class="step-num">4</div><div class="step-content"><div class="step-title">Accept or Finalize</div><div class="step-desc">Accept applies the edit to the running program. Finalize saves it permanently to the project.</div></div></li>
+</ol>
+
+<div class="callout critical">
+  <div class="callout-label">Critical</div>
+  <p>Always <strong>Finalize</strong> your online edits before going offline. If you only Accept without Finalizing, your project file on disk will NOT match the running controller. The next person to download will overwrite your changes.</p>
+</div>
+```
+
+  </section>
+
+  <!-- SECTION 5: PROJECT STRUCTURE -->
+
+  <section>
+    <span class="section-anchor" id="project"></span>
+    <h2><span class="section-num">05</span> Project Structure</h2>
+
+```
+<p>A Studio 5000 project file (<code>.ACD</code>) contains everything — hardware configuration, all code, all tags, and all properties. The internal hierarchy is:</p>
+
+<div class="diagram">Controller (1756-L73 "ProductionLine_PLC")
+```
+
+│
+├── Tasks/
+│   ├── Continuous Task (MainTask)
+│   │   └── Programs/
+│   │       ├── Program: Conveyor
+│   │       │   ├── Routine: MainRoutine  ← entry point
+│   │       │   ├── Routine: FaultRoutine
+│   │       │   └── Program-Scoped Tags
+│   │       └── Program: Packaging
+│   │           ├── Routine: MainRoutine
+│   │           └── Program-Scoped Tags
+│   └── Periodic Task (SafetyMonitor, 10ms)
+│       └── Programs/
+│           └── Program: EStopMonitor
+│
+├── Controller Tags/          ← global scope
+├── I/O Configuration/
+│   ├── [0] 1756-L73
+│   ├── [1] 1756-EN2T
+│   └── [2] 1756-IB16
+└── Add-On Instructions/      ← reusable function blocks</div>
+
+```
+<div class="callout info">
+  <div class="callout-label">Key Concept</div>
+  <p>The <code>MainRoutine</code> of each program is the <strong>entry point</strong>. When a task runs, it executes the MainRoutine of each program assigned to it. Other routines must be explicitly called using a <code>JSR</code> (Jump to Subroutine) instruction.</p>
+</div>
+```
+
+  </section>
+
+  <!-- SECTION 6: TAG DATABASE -->
+
+  <section>
+    <span class="section-anchor" id="tags"></span>
+    <h2><span class="section-num">06</span> Tag Database</h2>
+
+```
+<p>ControlLogix uses a <strong>tag-based</strong> architecture — there are no fixed memory addresses (no %MW100, no N7:0). Every memory location has a meaningful name (a tag). This is one of the biggest differences from legacy PLCs.</p>
+
+<h3>Tag Scope</h3>
+<table>
+  <thead><tr><th>Scope</th><th>Where Defined</th><th>Accessible By</th></tr></thead>
+  <tbody>
+    <tr><td>Controller Tags</td><td>Controller-level tag editor</td><td>All programs and tasks in the project</td></tr>
+    <tr><td>Program Tags</td><td>Individual program tag editor</td><td>Only routines within that program</td></tr>
+  </tbody>
+</table>
+
+<div class="callout tip">
+  <div class="callout-label">Best Practice</div>
+  <p>Use Program-scoped tags wherever possible. Controller-scoped tags are global and can be accidentally modified by any routine. Reserve Controller tags for data that genuinely needs to be shared between programs — like setpoints, status signals, and HMI-facing data.</p>
+</div>
+
+<h3>Core Data Types</h3>
+<table>
+  <thead><tr><th>Type</th><th>Size</th><th>Range</th><th>Use Case</th></tr></thead>
+  <tbody>
+    <tr><td>BOOL</td><td>1 bit</td><td>0 or 1</td><td>Discrete I/O, flags, coils</td></tr>
+    <tr><td>SINT</td><td>8-bit signed</td><td>-128 to 127</td><td>Small counters, rarely used</td></tr>
+    <tr><td>INT</td><td>16-bit signed</td><td>-32,768 to 32,767</td><td>Legacy; use DINT instead</td></tr>
+    <tr><td>DINT</td><td>32-bit signed</td><td>±2.1 billion</td><td>Standard integer — most common</td></tr>
+    <tr><td>LINT</td><td>64-bit signed</td><td>Very large</td><td>Timestamp, large counters</td></tr>
+    <tr><td>REAL</td><td>32-bit float</td><td>±3.4×10³⁸</td><td>Analog values, setpoints, PID</td></tr>
+    <tr><td>STRING</td><td>82 bytes</td><td>82 ASCII chars</td><td>Operator messages, barcodes</td></tr>
+  </tbody>
+</table>
+
+<h3>Structured Tags (Arrays and UDTs)</h3>
+<p>Tags can be <strong>arrays</strong> (indexed collections of the same type) or <strong>User-Defined Types</strong> (structures grouping related data). These are covered in depth in Section 18.</p>
+```
+
+<pre><span class="comment">// Array example: 10 DINT values</span>
+<span class="label">ConveyorSpeed</span>[0]    <span class="comment">// zone 0 speed</span>
+<span class="label">ConveyorSpeed</span>[1]    <span class="comment">// zone 1 speed</span>
+<span class="label">ConveyorSpeed</span>[9]    <span class="comment">// zone 9 speed</span>
+
+<span class="comment">// UDT example: Pump structure</span>
+<span class="label">FeedPump</span>.RunCmd     BOOL
+<span class="label">FeedPump</span>.Running    BOOL
+<span class="label">FeedPump</span>.Fault      BOOL
+<span class="label">FeedPump</span>.Speed_pct  REAL
+<span class="label">FeedPump</span>.Runtime_hr DINT</pre>
+
+```
+<h3>Alias Tags</h3>
+<p>An <strong>alias</strong> is a tag that points to another tag or I/O location. Use aliases to give meaningful names to physical I/O points:</p>
+```
+
+<pre><span class="comment">// I/O tag (system-generated, ugly):</span>
+<span class="value">Local:2:I.Data.0</span>
+
+<span class="comment">// Alias tag (meaningful):</span>
+<span class="label">ConveyorStartPB</span>  →  <span class="value">Local:2:I.Data.0</span></pre>
+
+```
+<div class="callout tip">
+  <div class="callout-label">Pro Workflow</div>
+  <p>Always write your ladder logic using alias tags. When I/O module slots change or wiring changes, you only update the alias definition — your ladder logic stays untouched. This is standard professional practice.</p>
+</div>
+```
+
+  </section>
+
+  <!-- SECTION 7: TASKS -->
+
+  <section>
+    <span class="section-anchor" id="tasks"></span>
+    <h2><span class="section-num">07</span> Tasks, Programs & Routines</h2>
+
+```
+<p>The execution model in Logix 5000 is one of the most important things to deeply understand. It determines <em>when</em> your code runs and <em>how fast</em>.</p>
+
+<h3>Task Types</h3>
+<table>
+  <thead><tr><th>Task Type</th><th>Triggered By</th><th>Use Case</th></tr></thead>
+  <tbody>
+    <tr><td>Continuous</td><td>Runs constantly, back-to-back</td><td>Main machine logic; always scanning</td></tr>
+    <tr><td>Periodic</td><td>Timer interval (e.g., every 10ms)</td><td>PID loops, communication handling, safety monitoring</td></tr>
+    <tr><td>Event</td><td>Hardware event (axis, I/O change, MSG instruction)</td><td>High-speed response; motion, fast I/O reaction</td></tr>
+  </tbody>
+</table>
+
+<h3>Task Priority</h3>
+<p>Tasks have priorities (1–15, lower = higher priority). A higher-priority task <strong>preempts</strong> lower-priority tasks mid-scan. This is critical to understand for timing:</p>
+
+<div class="diagram">Priority 1  ██████░░░░░░░░░░░░░░░░░░░░  Periodic Task (Safety, 10ms)
+```
+
+Priority 7  ░░░░████████░░░████████░░░  Periodic Task (PID, 50ms)  
+Priority 15 ░░░░░░░░░░░░███░░░░░░░░░██  Continuous Task (MainTask)
+──────────────────────────→  Time
+
+Higher priority tasks interrupt the continuous task whenever they need to run.</div>
+
+```
+<h3>Scan Time and Watchdog</h3>
+<p>Every task has a <strong>watchdog timer</strong>. If the task takes longer than the watchdog period to complete one scan, the controller faults. This protects against infinite loops and runaway code.</p>
+<ul class="bullet">
+  <li>Continuous task watchdog: default 500ms (configurable)</li>
+  <li>Periodic task watchdog: typically set to 2× the period</li>
+  <li>Watchdog fault = <em>major fault</em> — controller goes to fault state, outputs de-energize</li>
+</ul>
+
+<h3>Programs and Routines</h3>
+<p>Programs group related routines and have their own tag scope. Each program has exactly one <strong>Main Routine</strong> (entry point) and can have any number of additional routines called via <code>JSR</code>.</p>
+
+<div class="callout info">
+  <div class="callout-label">Program Design Pattern</div>
+  <p>A common architecture: one Program per machine section (Infeed, Processing, Outfeed), with routines for: Main, Faults, State Machine, HMI_Interface. This keeps code modular and easy to navigate for the next engineer.</p>
+</div>
+```
+
+  </section>
+
+  <!-- SECTION 8: LANGUAGES -->
+
+  <section>
+    <span class="section-anchor" id="languages"></span>
+    <h2><span class="section-num">08</span> Programming Languages</h2>
+
+```
+<p>Studio 5000 supports all four IEC 61131-3 programming languages plus Structured Text. Each has its strengths.</p>
+
+<table>
+  <thead><tr><th>Language</th><th>Abbr.</th><th>Best For</th><th>Industry Use</th></tr></thead>
+  <tbody>
+    <tr><td>Ladder Diagram</td><td>LD</td><td>Discrete logic, interlocks, sequential control</td><td>⭐⭐⭐⭐⭐ Dominant</td></tr>
+    <tr><td>Function Block Diagram</td><td>FBD</td><td>Analog processing, PID, drive control, motion</td><td>⭐⭐⭐ Common</td></tr>
+    <tr><td>Structured Text</td><td>ST</td><td>Math, string handling, complex algorithms, recipes</td><td>⭐⭐⭐ Growing fast</td></tr>
+    <tr><td>Sequential Function Chart</td><td>SFC</td><td>Batch processes, sequential machines, state machines</td><td>⭐⭐ Specialized</td></tr>
+  </tbody>
+</table>
+
+<div class="callout info">
+  <div class="callout-label">Career Advice</div>
+  <p>Master <strong>Ladder first</strong> — it's what 80% of North American industry uses and expects. Then add Structured Text, which is becoming increasingly common for complex logic. FBD is essential if you work with drives or analog-heavy systems.</p>
+</div>
+
+<h3>Mixing Languages</h3>
+<p>You can use different languages in different <em>routines</em> within the same project. A common pattern: Ladder for interlocks and sequencing, ST for calculations and recipe management, FBD for PID and drive logic. You choose the language per routine when you create it.</p>
+```
+
+  </section>
+
+  <!-- SECTION 9: LADDER -->
+
+  <section>
+    <span class="section-anchor" id="ladder"></span>
+    <h2><span class="section-num">09</span> Ladder Logic Deep Dive</h2>
+
+```
+<p>Ladder logic mimics relay control circuits. It's read left-to-right, top-to-bottom. Each rung has a logical condition (left side) and an output action (right side). Power "flows" from the left rail to the right rail when conditions are true.</p>
+
+<h3>Fundamental Contacts & Coils</h3>
+<table>
+  <thead><tr><th>Symbol</th><th>Name</th><th>Instruction</th><th>Behavior</th></tr></thead>
+  <tbody>
+    <tr><td>—[ ]—</td><td>Examine If Closed</td><td>XIC</td><td>True when tag = 1 (contact closed)</td></tr>
+    <tr><td>—[/]—</td><td>Examine If Open</td><td>XIO</td><td>True when tag = 0 (contact open)</td></tr>
+    <tr><td>—( )—</td><td>Output Energize</td><td>OTE</td><td>Sets tag = 1 when rung true; 0 when false</td></tr>
+    <tr><td>—(L)—</td><td>Output Latch</td><td>OTL</td><td>Sets tag = 1 when rung true; stays 1 until unlatch</td></tr>
+    <tr><td>—(U)—</td><td>Output Unlatch</td><td>OTU</td><td>Sets tag = 0 when rung true; retentive</td></tr>
+    <tr><td>—[OSR]—</td><td>One Shot Rising</td><td>OSR</td><td>True for exactly ONE scan on 0→1 transition</td></tr>
+    <tr><td>—[OSF]—</td><td>One Shot Falling</td><td>OSF</td><td>True for exactly ONE scan on 1→0 transition</td></tr>
+  </tbody>
+</table>
+
+<h3>Rung Examples</h3>
+```
+
+<pre><span class="comment">// RUNG 1: Simple start/stop motor seal-in circuit</span>
+<span class="comment">// Start PB OR already running, AND NOT stop PB, AND NOT fault</span>
+
+[<span class="label">Start_PB</span>]  (<span class="label">Motor_Run</span>)
+    |
+[<span class="label">Motor_Run</span>]
+    |
+[/<span class="label">Stop_PB</span>]
+    |
+[/<span class="label">Motor_Fault</span>]
+
+<span class="comment">// This is a classic seal-in (memory) circuit:</span>
+<span class="comment">// Press Start → Motor_Run energizes → Motor_Run XIC seals in</span>
+<span class="comment">// → Motor keeps running even after Start_PB releases</span>
+<span class="comment">// → Press Stop or fault occurs → circuit breaks → Motor_Run drops</span></pre>
+
+```
+<h3>The One-Shot Pattern (Critical)</h3>
+<p>One-shots are used constantly. They convert a continuous signal into a single-scan pulse. Without understanding one-shots, you'll create unintentional repeated triggers:</p>
+```
+
+<pre><span class="comment">// WITHOUT one-shot: This counter increments EVERY SCAN</span>
+<span class="comment">// that Run_Signal is true (wrong for counting parts!)</span>
+[<span class="label">Run_Signal</span>]  --[CTU Counter PartCount Preset:100]--
+
+<span class="comment">// WITH one-shot: Counter increments only ONCE per</span>
+<span class="comment">// rising edge of Run_Signal (correct!)</span>
+[<span class="label">Run_Signal</span>]  --[OSR OneShot_Bit]--
+[<span class="label">OneShot_Bit</span>] --[CTU Counter PartCount Preset:100]--</pre>
+
+```
+<h3>Parallel Branches (OR Logic)</h3>
+<p>Branches in ladder create OR conditions. Any branch path that passes power will energize the output:</p>
+```
+
+<pre><span class="comment">// Either sensor OR manual override can run the conveyor</span>
+[<span class="label">PhotoEye_Clear</span>] ─┬──────────────────[<span class="label">Conv_Start</span>]─── (<span class="label">Conv_Run</span>)
+                   │
+[<span class="label">ManualOverride</span>]  ┘</pre>
+
+```
+<div class="callout tip">
+  <div class="callout-label">Ladder Best Practices</div>
+  <p>Keep rungs short and readable. If a rung needs more than 4-5 contacts, break the condition into intermediate BOOLs with clear names. Code is read far more often than it's written — optimize for the person debugging it at 2am.</p>
+</div>
+```
+
+  </section>
+
+  <!-- SECTION 10: INSTRUCTIONS -->
+
+  <section>
+    <span class="section-anchor" id="instructions"></span>
+    <h2><span class="section-num">10</span> Key Instructions Reference</h2>
+
+```
+<h3>Timers</h3>
+<p>Timers are TIMER data type structures with three BOOLs (<code>.EN</code>, <code>.TT</code>, <code>.DN</code>) and a DINT (<code>.ACC</code> accumulated, <code>.PRE</code> preset, in milliseconds).</p>
+
+<table>
+  <thead><tr><th>Instruction</th><th>Name</th><th>Behavior</th></tr></thead>
+  <tbody>
+    <tr><td>TON</td><td>Timer On Delay</td><td>Starts timing when rung true. .DN goes true when .ACC ≥ .PRE. Resets when rung goes false.</td></tr>
+    <tr><td>TOF</td><td>Timer Off Delay</td><td>Starts timing when rung goes false. .DN goes false when .ACC ≥ .PRE.</td></tr>
+    <tr><td>RTO</td><td>Retentive Timer On</td><td>Like TON but .ACC doesn't reset when rung goes false. Must use RES instruction to reset.</td></tr>
+  </tbody>
+</table>
+```
+
+<pre><span class="comment">// TON example: 5-second delay before starting pump</span>
+[<span class="label">StartRequest</span>]  --[TON Timer:<span class="value">PumpDelay</span> Preset:<span class="value">5000</span> Accum:<span class="value">0</span>]--
+
+[<span class="label">PumpDelay</span>.DN]  --(<span class="label">Pump_RunCmd</span>)--
+
+<span class="comment">// PumpDelay.EN goes true when StartRequest is true</span>
+<span class="comment">// PumpDelay.TT goes true while timing (EN=1, DN=0)</span>
+<span class="comment">// PumpDelay.DN goes true at 5000ms → Pump_RunCmd energizes</span></pre>
+
+```
+<h3>Counters</h3>
+<table>
+  <thead><tr><th>Instruction</th><th>Name</th><th>Behavior</th></tr></thead>
+  <tbody>
+    <tr><td>CTU</td><td>Count Up</td><td>Increments .ACC on each false-to-true rung transition. .DN true when .ACC ≥ .PRE.</td></tr>
+    <tr><td>CTD</td><td>Count Down</td><td>Decrements .ACC on each false-to-true transition. .DN true when .ACC ≤ 0.</td></tr>
+    <tr><td>RES</td><td>Reset</td><td>Resets .ACC to 0 for a counter or timer. Use with retentive timers and counters.</td></tr>
+  </tbody>
+</table>
+
+<h3>Comparison Instructions</h3>
+<table>
+  <thead><tr><th>Instruction</th><th>Condition</th></tr></thead>
+  <tbody>
+    <tr><td>EQU</td><td>Source A = Source B</td></tr>
+    <tr><td>NEQ</td><td>Source A ≠ Source B</td></tr>
+    <tr><td>GRT</td><td>Source A > Source B</td></tr>
+    <tr><td>GEQ</td><td>Source A ≥ Source B</td></tr>
+    <tr><td>LES</td><td>Source A < Source B</td></tr>
+    <tr><td>LEQ</td><td>Source A ≤ Source B</td></tr>
+    <tr><td>LIM</td><td>Low Limit ≤ Test ≤ High Limit (inside range)</td></tr>
+  </tbody>
+</table>
+
+<h3>Math Instructions</h3>
+<table>
+  <thead><tr><th>Instruction</th><th>Operation</th><th>Notes</th></tr></thead>
+  <tbody>
+    <tr><td>ADD</td><td>Dest = SourceA + SourceB</td><td>Works on any numeric type</td></tr>
+    <tr><td>SUB</td><td>Dest = SourceA - SourceB</td><td></td></tr>
+    <tr><td>MUL</td><td>Dest = SourceA × SourceB</td><td>Watch for overflow with DINT</td></tr>
+    <tr><td>DIV</td><td>Dest = SourceA ÷ SourceB</td><td>Divide-by-zero causes minor fault</td></tr>
+    <tr><td>MOD</td><td>Dest = SourceA mod SourceB</td><td>Remainder operation</td></tr>
+    <tr><td>CPT</td><td>Compute — expression-based</td><td>Most powerful: Dest = (A+B)*C/D in one instruction</td></tr>
+    <tr><td>MOV</td><td>Dest = Source</td><td>Copy a value</td></tr>
+    <tr><td>COP</td><td>Copy a block of data</td><td>Used for array copies</td></tr>
+  </tbody>
+</table>
+
+<h3>Program Control</h3>
+<table>
+  <thead><tr><th>Instruction</th><th>Name</th><th>Use</th></tr></thead>
+  <tbody>
+    <tr><td>JSR</td><td>Jump to Subroutine</td><td>Call another routine; pass parameters via input/output operands</td></tr>
+    <tr><td>RET</td><td>Return</td><td>Return from subroutine (required at end of called routine)</td></tr>
+    <tr><td>JMP</td><td>Jump to Label</td><td>Unconditional jump to a label in the same routine (use sparingly)</td></tr>
+    <tr><td>LBL</td><td>Label</td><td>Target for JMP instruction</td></tr>
+    <tr><td>MCR</td><td>Master Control Reset</td><td>De-energizes all non-retentive outputs within MCR zone — handle with care</td></tr>
+  </tbody>
+</table>
+
+<div class="callout warn">
+  <div class="callout-label">Important</div>
+  <p>Avoid <code>JMP/LBL</code> for sequential logic — it creates spaghetti code and makes debugging miserable. Use state machines (DINT state variable + EQU comparisons) instead. JMP is occasionally valid for skipping inactive recipe sections.</p>
+</div>
+
+<h3>PID Instruction</h3>
+<p>The <code>PID</code> instruction implements a full PID controller in a single function block. Key parameters:</p>
+<ul class="bullet">
+  <li><strong>.SP</strong> — Setpoint (desired value)</li>
+  <li><strong>.PV</strong> — Process Variable (measured value, typically from analog input)</li>
+  <li><strong>.OUT</strong> — Controller output (send to analog output or VFD speed reference)</li>
+  <li><strong>.KP, .KI, .KD</strong> — Proportional, Integral, Derivative gains</li>
+  <li><strong>.MAXS, .MINS</strong> — Engineering unit scaling for PV</li>
+  <li><strong>.MAXO, .MINO</strong> — Output clamp (typically 0–100%)</li>
+</ul>
+```
+
+  </section>
+
+  <!-- SECTION 11: NETWORKS -->
+
+  <section>
+    <span class="section-anchor" id="networks"></span>
+    <h2><span class="section-num">11</span> Industrial Networks Overview</h2>
+
+```
+<p>ControlLogix can communicate over multiple networks simultaneously. Understanding which protocol belongs where is fundamental to system design.</p>
+
+<div class="diagram">Enterprise Layer  ────  MES / ERP / Historian (OPC-UA, SQL)
+                          │
+```
+
+IT/OT Border      ────  DMZ / Firewall
+│
+Control Network   ────  EtherNet/IP (primary)
+├─ Controller ↔ Controller
+├─ Controller ↔ Remote I/O
+├─ Controller ↔ HMI
+└─ Controller ↔ Drives / Instruments
+│
+Device Level      ────  DeviceNet / Profibus / IO-Link (legacy field)
+│
+Field Devices     ────  Sensors, Actuators, VFDs, Robots</div>
+
+```
+<table>
+  <thead><tr><th>Network</th><th>Type</th><th>Speed</th><th>Status</th></tr></thead>
+  <tbody>
+    <tr><td>EtherNet/IP</td><td>Industrial Ethernet (TCP/UDP)</td><td>100Mbps / 1Gbps</td><td>Current standard — learn this</td></tr>
+    <tr><td>ControlNet</td><td>Coax or fiber, deterministic</td><td>5Mbps</td><td>Legacy — still deployed, being replaced</td></tr>
+    <tr><td>DeviceNet</td><td>CAN-based field bus</td><td>500Kbps</td><td>Legacy — common in older plants</td></tr>
+    <tr><td>DH+ / DH-485</td><td>RS-485 serial</td><td>57.6 Kbps</td><td>Very legacy — SLC 500, PLC-5 era</td></tr>
+    <tr><td>PROFINET</td><td>Siemens competitor to EtherNet/IP</td><td>100Mbps</td><td>Common on Siemens sites</td></tr>
+  </tbody>
+</table>
+```
+
+  </section>
+
+  <!-- SECTION 12: ETHERNET/IP -->
+
+  <section>
+    <span class="section-anchor" id="ethernetip"></span>
+    <h2><span class="section-num">12</span> EtherNet/IP Deep Dive</h2>
+
+```
+<p>EtherNet/IP (Ethernet Industrial Protocol) is the backbone of modern Rockwell systems. It runs on standard Ethernet hardware but uses a protocol called <strong>CIP (Common Industrial Protocol)</strong> on top of TCP/IP and UDP.</p>
+
+<h3>Connection Types</h3>
+<table>
+  <thead><tr><th>Type</th><th>Protocol</th><th>Use Case</th></tr></thead>
+  <tbody>
+    <tr><td>Implicit (I/O)</td><td>UDP/IP multicast or unicast</td><td>Real-time I/O data — cyclic, time-critical, low latency</td></tr>
+    <tr><td>Explicit (MSG)</td><td>TCP/IP</td><td>On-demand data — reads, writes, config changes</td></tr>
+  </tbody>
+</table>
+
+<h3>MSG Instruction</h3>
+<p>The <code>MSG</code> instruction sends explicit messages over EtherNet/IP (or ControlNet/DH+). Use it for:</p>
+<ul class="bullet">
+  <li>Reading/writing tags in another controller</li>
+  <li>Reading/writing parameters in a drive or instrument</li>
+  <li>Configuration reads from remote devices</li>
+</ul>
+
+<div class="callout warn">
+  <div class="callout-label">MSG Instruction Rules</div>
+  <p>MSG instructions are <strong>asynchronous</strong>. They take time to complete (network round trip). Always check the <code>.DN</code> (done) and <code>.ER</code> (error) bits before using the result. Never trigger a MSG instruction every scan — use a one-shot to initiate, then wait for .DN before re-triggering.</p>
+</div>
+
+<h3>Produced & Consumed Tags (Preview)</h3>
+<p>A faster alternative to MSG for controller-to-controller data. One controller "produces" a tag; another "consumes" it. Data transfers at the configured RPI automatically. See Section 16 for full detail.</p>
+
+<h3>EtherNet/IP Network Design Rules</h3>
+<ul class="bullet">
+  <li>Use <strong>managed switches</strong> (not unmanaged) — you need QoS, VLANs, and port mirroring</li>
+  <li>Segment OT (control) network from IT (office) network — use a firewall or DMZ</li>
+  <li>Use <strong>star topology</strong> — avoid daisy chains (single point of failure)</li>
+  <li>Enable <strong>IGMP snooping</strong> on managed switches to control multicast traffic</li>
+  <li>Set device IP addresses in a logical scheme (e.g., 192.168.1.x for controllers, 192.168.2.x for remote I/O)</li>
+  <li>Document every IP address in your network drawing</li>
+</ul>
+```
+
+  </section>
+
+  <!-- SECTION 13: I/O CONFIG -->
+
+  <section>
+    <span class="section-anchor" id="io"></span>
+    <h2><span class="section-num">13</span> I/O Configuration</h2>
+
+```
+<p>I/O configuration in Studio 5000 is done in the <strong>I/O Configuration tree</strong>. Every module you add creates a corresponding set of <strong>system tags</strong> in the controller tag database.</p>
+
+<h3>I/O Tag Naming Convention</h3>
+```
+
+<pre><span class="comment">// Format: Location:Slot:Direction.Data.Bit</span>
+
+<span class="label">Local</span>:<span class="value">2</span>:I.<span class="value">Data</span>.<span class="value">0</span>    <span class="comment">// Local chassis, slot 2, Input bit 0</span>
+<span class="label">Local</span>:<span class="value">2</span>:O.<span class="value">Data</span>.<span class="value">3</span>    <span class="comment">// Local chassis, slot 2, Output bit 3</span>
+<span class="label">Local</span>:<span class="value">4</span>:I.<span class="value">Ch0Data</span>    <span class="comment">// Analog input module, channel 0 raw counts</span>
+<span class="label">RACK1</span>:<span class="value">3</span>:I.<span class="value">Data</span>.<span class="value">0</span>   <span class="comment">// Remote rack "RACK1", slot 3, input bit 0</span></pre>
+
+```
+<h3>Analog I/O Scaling</h3>
+<p>Analog modules return raw counts (typically 0–32,767 for 0–20mA or 0–10V). You must scale these to engineering units. The <code>SCL</code> instruction or <code>CPT</code> with a linear equation does this:</p>
+```
+
+<pre><span class="comment">// Scaling formula: EU = (raw - rawMin) / (rawMax - rawMin) * (EUmax - EUmin) + EUmin</span>
+<span class="comment">// Pressure transmitter: 4-20mA = 0-100 PSI</span>
+<span class="comment">// Raw counts: 4mA=3277, 20mA=16383</span>
+
+CPT
+  Dest: <span class="label">PressureTag_PSI</span>
+  Expression: (<span class="value">Local:4:I.Ch0Data</span> - 3277) / (16383 - 3277) * 100.0</pre>
+
+```
+<h3>Module Inhibiting</h3>
+<p>You can <strong>inhibit</strong> an I/O module in the configuration. When inhibited, the module's connection is not established — useful for:</p>
+<ul class="bullet">
+  <li>Commissioning before all hardware is installed</li>
+  <li>Temporarily removing a module for maintenance</li>
+  <li>Preventing major faults during development</li>
+</ul>
+```
+
+  </section>
+
+  <!-- SECTION 14: MOTION -->
+
+  <section>
+    <span class="section-anchor" id="motion"></span>
+    <h2><span class="section-num">14</span> Motion Control</h2>
+
+```
+<p>ControlLogix has world-class integrated motion control. The <strong>Kinetix</strong> servo drive family pairs with ControlLogix over EtherNet/IP using the <strong>CIP Motion</strong> protocol for synchronized, deterministic multi-axis control.</p>
+
+<h3>Motion Architecture</h3>
+<div class="card-grid">
+  <div class="card">
+    <div class="card-name">AXIS_SERVO_DRIVE</div>
+    <div class="card-desc">Tag type for servo axes connected via CIP Motion (Kinetix 5500/5700). Full feedback loop in drive.</div>
+  </div>
+  <div class="card">
+    <div class="card-name">AXIS_SERVO</div>
+    <div class="card-desc">Legacy axis type using analog ±10V command with encoder feedback to controller.</div>
+  </div>
+  <div class="card">
+    <div class="card-name">AXIS_VIRTUAL</div>
+    <div class="card-desc">Software-only axis — useful for simulations, electronic gearing master, or cam profiles.</div>
+  </div>
+  <div class="card">
+    <div class="card-name">AXIS_GENERIC</div>
+    <div class="card-desc">For non-Kinetix drives using CIP Motion. Requires drive-specific EDS configuration.</div>
+  </div>
+</div>
+
+<h3>Key Motion Instructions (MAM, MAS, MAJ)</h3>
+<table>
+  <thead><tr><th>Instruction</th><th>Name</th><th>Action</th></tr></thead>
+  <tbody>
+    <tr><td>MSO</td><td>Motion Servo On</td><td>Enable servo drive, close position loop</td></tr>
+    <tr><td>MSF</td><td>Motion Servo Off</td><td>Disable servo</td></tr>
+    <tr><td>MRHD</td><td>Motion Run Home Direct</td><td>Home to switch or torque limit</td></tr>
+    <tr><td>MAM</td><td>Motion Axis Move</td><td>Move to absolute or incremental position</td></tr>
+    <tr><td>MAJ</td><td>Motion Axis Jog</td><td>Continuous velocity move</td></tr>
+    <tr><td>MAS</td><td>Motion Axis Stop</td><td>Stop with configurable decel</td></tr>
+    <tr><td>MAPC</td><td>Motion Apply Cam</td><td>Electronic cam profile</td></tr>
+    <tr><td>MGEAR</td><td>Motion Axis Gear</td><td>Electronic gearing (slave follows master ratio)</td></tr>
+  </tbody>
+</table>
+
+<h3>Coordinated Motion</h3>
+<p>Multiple axes can be grouped into a <strong>Coordinate System</strong> for linear or circular interpolated moves. This is essential for robotics, gantries, and CNC-style applications. The <code>MCLM</code> (Linear Move) and <code>MCCM</code> (Circular Move) instructions operate on the coordinate system, not individual axes.</p>
+```
+
+  </section>
+
+  <!-- SECTION 15: SAFETY -->
+
+  <section>
+    <span class="section-anchor" id="safety"></span>
+    <h2><span class="section-num">15</span> Safety PLCs — GuardLogix</h2>
+
+```
+<p><strong>GuardLogix</strong> is the safety-rated variant of ControlLogix. It uses the same hardware chassis and Studio 5000 environment but adds a dedicated <strong>Safety Task</strong> and <strong>CIP Safety</strong> communication for certified safe I/O.</p>
+
+<h3>Key Safety Concepts</h3>
+
+<details>
+  <summary>SIL and PLe — Safety Integrity Levels</summary>
+  <div class="details-body">
+    <p>GuardLogix is certified to <strong>SIL 2/SIL 3</strong> (IEC 62061) and <strong>PLd/PLe</strong> (ISO 13849). These ratings define the probability of dangerous failure per hour and the required systematic capability of the safety system.</p>
+    <p>SIL 2 is sufficient for most industrial machinery (light curtains, E-stops, door interlocks). SIL 3 is required for high-consequence applications like chemical reactors or press brakes.</p>
+  </div>
+</details>
+
+<details>
+  <summary>Safety Task — What Makes It Different</summary>
+  <div class="details-body">
+    <p>The Safety Task runs independently from standard tasks. It has strict rules: no indirect addressing, no JMP to LBL, no program-controlled output disabling. The controller performs continuous self-diagnostics (CRC checks, memory tests).</p>
+    <p>Safety logic is "locked" — a separate safety signature (hash) is created when the safety code is finalized. Any modification to safety code must go through a formal change management process and re-verification.</p>
+  </div>
+</details>
+
+<details>
+  <summary>CIP Safety — Safe I/O Communication</summary>
+  <div class="details-body">
+    <p>CIP Safety adds a safety layer to EtherNet/IP or DeviceNet. It includes: time-stamping, connection ID, CRC validation, watchdog monitoring. This ensures the safety system detects network faults (corruption, delays, repeated packets) as a safe-state condition.</p>
+    <p>Safety I/O modules (1791DS series for CompactLogix, 1756-IB16S for ControlLogix) provide dual-channel input monitoring for PLe category 4 safety functions.</p>
+  </div>
+</details>
+
+<div class="callout info">
+  <div class="callout-label">Note for Your Career Path</div>
+  <p>Safety PLC knowledge is a <em>significant differentiator</em> in the controls market. Most automation engineers understand standard PLCs. Engineers who understand GuardLogix, safety architecture, and safety function validation command premium salaries. It's worth adding to your roadmap after mastering standard ControlLogix.</p>
+</div>
+```
+
+  </section>
+
+  <!-- SECTION 16: PRODUCED/CONSUMED TAGS -->
+
+  <section>
+    <span class="section-anchor" id="produced"></span>
+    <h2><span class="section-num">16</span> Produced & Consumed Tags</h2>
+
+```
+<p>Produced/Consumed tags are the most efficient way to share data between two ControlLogix controllers over EtherNet/IP. One controller <strong>produces</strong> a tag; other controllers <strong>consume</strong> it. Data transfers at the configured RPI with no ladder logic required.</p>
+
+<div class="diagram">Controller A (Producer)              Controller B (Consumer)
+```
+
+┌─────────────────────────┐          ┌──────────────────────────┐
+│ Tag: LineA_Status        │ ──────→  │ Tag: LineA_Status (copy)  │
+│ (Produced, RPI=20ms)     │ EtherNet │ (Consumed from A)         │
+└─────────────────────────┘    /IP   └──────────────────────────┘
+↑ also consumed by
+Controller C (Consumer)
+Controller D (Consumer)</pre></div>
+
+```
+<h3>When to Use Produced/Consumed vs. MSG</h3>
+<table>
+  <thead><tr><th>Scenario</th><th>Use</th></tr></thead>
+  <tbody>
+    <tr><td>Continuous real-time status data (e.g., line running, speeds, faults)</td><td>Produced/Consumed Tags</td></tr>
+    <tr><td>On-demand reads/writes (triggered by events)</td><td>MSG Instruction</td></tr>
+    <tr><td>Large data blocks (recipes, parameter sets)</td><td>MSG Instruction</td></tr>
+    <tr><td>One producer, many consumers</td><td>Produced/Consumed (multicast)</td></tr>
+  </tbody>
+</table>
+```
+
+  </section>
+
+  <!-- SECTION 17: AOI -->
+
+  <section>
+    <span class="section-anchor" id="aoi"></span>
+    <h2><span class="section-num">17</span> Add-On Instructions (AOI)</h2>
+
+```
+<p>An Add-On Instruction (AOI) is a reusable, encapsulated function block you create in Studio 5000. Once created, an AOI appears in the instruction set and can be used anywhere in the project — just like a built-in instruction. This is ControlLogix's equivalent of a function or method in software programming.</p>
+
+<h3>AOI Structure</h3>
+```
+
+<pre><span class="comment">// An AOI definition contains:</span>
+<span class="keyword">AOI Name:</span>  <span class="label">Motor_FB</span>   <span class="comment">// Function Block: Motor control</span>
+<span class="keyword">Parameters:</span>
+  RunCmd      BOOL  InOut   <span class="comment">// Run command (passed by reference)</span>
+  FaultReset  BOOL  Input   <span class="comment">// Fault reset button</span>
+  Running     BOOL  Output  <span class="comment">// Feedback from motor starter</span>
+  Faulted     BOOL  Output  <span class="comment">// Fault status output</span>
+<span class="keyword">Local Tags:</span>
+  FaultTimer  TIMER         <span class="comment">// Internal timer — not visible outside AOI</span>
+  StartOSR    BOOL          <span class="comment">// Internal one-shot — not visible outside</span>
+<span class="keyword">Logic Routine:</span>
+  [All the motor control logic lives here]</pre>
+
+```
+<h3>Why AOIs Are Powerful</h3>
+<ul class="bullet">
+  <li><strong>Standardization:</strong> One AOI for all motors. Fix a bug once, fix it everywhere.</li>
+  <li><strong>Encapsulation:</strong> Internal logic is hidden — the user only sees the interface (parameters)</li>
+  <li><strong>FactoryTalk View integration:</strong> AOIs can have built-in HMI faceplate displays</li>
+  <li><strong>Exportable:</strong> AOIs can be exported and imported across projects — build your library</li>
+  <li><strong>Protection:</strong> AOIs can be source-protected (encrypted) for IP protection</li>
+</ul>
+
+<div class="callout tip">
+  <div class="callout-label">Portfolio Tip</div>
+  <p>Creating a well-designed AOI library (Motor_FB, Pump_FB, Valve_FB, PID_Wrapper) is an excellent portfolio demonstration. It shows you think in reusable, maintainable patterns — a hallmark of senior-level thinking.</p>
+</div>
+```
+
+  </section>
+
+  <!-- SECTION 18: UDT -->
+
+  <section>
+    <span class="section-anchor" id="udt"></span>
+    <h2><span class="section-num">18</span> User-Defined Data Types (UDTs)</h2>
+
+```
+<p>UDTs let you create custom data structures that group related variables. Instead of a dozen scattered tags, you have one structured tag with meaningful members.</p>
+```
+
+<pre><span class="comment">// UDT Definition: Motor_Type</span>
+<span class="keyword">STRUCT</span> Motor_Type
+  RunCmd        BOOL      <span class="comment">// Command to run</span>
+  Running       BOOL      <span class="comment">// Motor running feedback</span>
+  Faulted       BOOL      <span class="comment">// Fault present</span>
+  LocalMode     BOOL      <span class="comment">// Local/Manual mode active</span>
+  Speed_pct     REAL      <span class="comment">// Speed feedback (0-100%)</span>
+  SpeedSP_pct   REAL      <span class="comment">// Speed setpoint (0-100%)</span>
+  Runtime_sec   DINT      <span class="comment">// Total runtime accumulator</span>
+  FaultCode     INT       <span class="comment">// Fault code for diagnostics</span>
+<span class="keyword">END_STRUCT</span>
+
+<span class="comment">// Usage: Create tags of this type</span>
+<span class="label">ConveyorDrive</span>    Motor_Type
+<span class="label">FeedPump</span>         Motor_Type
+<span class="label">ExhaustFan</span>[3]    Motor_Type   <span class="comment">// Array of 3 motor structures</span>
+
+<span class="comment">// Access members:</span>
+<span class="label">ConveyorDrive</span>.RunCmd = 1
+<span class="label">FeedPump</span>.Speed_pct → analog output scaling
+<span class="label">ExhaustFan</span>[0].Faulted → check fan 0 fault</pre>
+
+```
+<h3>UDT Best Practices</h3>
+<ul class="bullet">
+  <li>Design UDTs to match your AOI interfaces — they work together naturally</li>
+  <li>Use consistent naming across projects — <code>Motor_Type</code> means the same thing everywhere</li>
+  <li>Nest UDTs inside UDTs for complex structures (e.g., a <code>Station_Type</code> containing an array of <code>Motor_Type</code>)</li>
+  <li>UDTs can be mapped directly to HMI tags — structured data simplifies HMI development</li>
+</ul>
+```
+
+  </section>
+
+  <!-- SECTION 19: WORKFLOW -->
+
+  <section>
+    <span class="section-anchor" id="workflow"></span>
+    <h2><span class="section-num">19</span> Engineering Workflow</h2>
+
+```
+<p>Professional controls engineers follow a structured workflow. Understanding this flow makes you effective on real projects from day one.</p>
+
+<ol class="steps">
+  <li><div class="step-num">1</div><div class="step-content">
+    <div class="step-title">Requirements & I/O List</div>
+    <div class="step-desc">Gather the functional spec and electrical drawings. Build your I/O list: every sensor, actuator, and signal with its module, slot, and point number. This is the foundation of your project.</div>
+  </div></li>
+  <li><div class="step-num">2</div><div class="step-content">
+    <div class="step-title">Create Project & Configure Hardware</div>
+    <div class="step-desc">Create new ACD file, select controller type and firmware. Add chassis, power supply, all modules in the correct slots. Set RPIs for each I/O module.</div>
+  </div></li>
+  <li><div class="step-num">3</div><div class="step-content">
+    <div class="step-title">Create Tag Database & Aliases</div>
+    <div class="step-desc">Import or manually create all alias tags mapping meaningful names to I/O addresses. Create UDTs and controller/program-scoped tags for internal logic.</div>
+  </div></li>
+  <li><div class="step-num">4</div><div class="step-content">
+    <div class="step-title">Write & Test Logic — Offline</div>
+    <div class="step-desc">Write ladder/ST code offline. Use the emulator (Logix Designer Simulator or ControlLogix hardware) for testing. Test all interlocks, sequences, and alarms.</div>
+  </div></li>
+  <li><div class="step-num">5</div><div class="step-content">
+    <div class="step-title">Download & Commission</div>
+    <div class="step-desc">Connect to hardware, download program. Commission I/O point-by-point — verify each input and output physically. Check analog scaling.</div>
+  </div></li>
+  <li><div class="step-num">6</div><div class="step-content">
+    <div class="step-title">Online Tuning & Optimization</div>
+    <div class="step-desc">Tune PID loops, VFD accel/decel ramps, motion profiles. Use online monitoring and trending to validate performance.</div>
+  </div></li>
+  <li><div class="step-num">7</div><div class="step-content">
+    <div class="step-title">Documentation & Handover</div>
+    <div class="step-desc">Update P&IDs, network drawings, tag descriptions. Create operator manual. Archive final ACD file. Backup to controller SD card.</div>
+  </div></li>
+</ol>
+
+<h3>Source Control for PLC Code</h3>
+<p>Export your project as <code>.L5X</code> (XML format) for version control with Git. Studio 5000 can import/export L5X for individual routines, tags, or the entire project. This enables diff comparison and collaborative development.</p>
+```
+
+<pre><span class="comment">// Export for version control:</span>
+File → Save As → L5X (XML) → commit to Git
+
+<span class="comment">// Compare changes between versions:</span>
+git diff v1.2.L5X v1.3.L5X   <span class="comment">// Shows tag and rung changes</span></pre>
+
+  </section>
+
+  <!-- SECTION 20: DIAGNOSTICS -->
+
+  <section>
+    <span class="section-anchor" id="diagnostics"></span>
+    <h2><span class="section-num">20</span> Diagnostics & Fault Handling</h2>
+
+```
+<h3>Major vs. Minor Faults</h3>
+<table>
+  <thead><tr><th>Fault Type</th><th>Effect</th><th>Recovery</th></tr></thead>
+  <tbody>
+    <tr><td>Major Fault</td><td>Controller faults — outputs de-energize, program stops</td><td>Clear fault in controller properties, fix root cause, go to Run mode</td></tr>
+    <tr><td>Minor Fault</td><td>Logged in fault table but program continues running</td><td>Can be cleared programmatically or manually</td></tr>
+    <tr><td>I/O Connection Fault</td><td>Module goes offline — connection lost</td><td>Check network, module power, RPI settings</td></tr>
+  </tbody>
+</table>
+
+<h3>Fault Codes to Know</h3>
+<table>
+  <thead><tr><th>Type</th><th>Code</th><th>Meaning</th></tr></thead>
+  <tbody>
+    <tr><td>4</td><td>1</td><td>Watchdog exceeded — task took too long</td></tr>
+    <tr><td>4</td><td>42</td><td>Divide by zero (math error)</td></tr>
+    <tr><td>7</td><td>x</td><td>Program fault (bad instruction usage)</td></tr>
+    <tr><td>8</td><td>x</td><td>I/O connection fault</td></tr>
+    <tr><td>10</td><td>x</td><td>Motion axis fault</td></tr>
+  </tbody>
+</table>
+
+<h3>Fault Routine</h3>
+<p>You can assign a <strong>Fault Routine</strong> to each program (and a Controller Fault Handler at the controller level). When a major fault occurs, the fault routine executes once before the controller faults. This lets you:</p>
+<ul class="bullet">
+  <li>Log the fault code to a tag (for HMI display)</li>
+  <li>Set digital outputs to a safe state</li>
+  <li>Clear minor faults programmatically (using <code>GSV/SSV</code> instructions on the controller object)</li>
+  <li>Attempt automatic fault recovery for non-critical faults</li>
+</ul>
+
+<h3>Key Diagnostic Instructions</h3>
+<table>
+  <thead><tr><th>Instruction</th><th>Name</th><th>Use</th></tr></thead>
+  <tbody>
+    <tr><td>GSV</td><td>Get System Value</td><td>Read controller properties (fault codes, task times, date/time)</td></tr>
+    <tr><td>SSV</td><td>Set System Value</td><td>Write controller properties (clear faults, set clock)</td></tr>
+    <tr><td>FAL</td><td>File Arithmetic Logic</td><td>Perform math operations across arrays</td></tr>
+    <tr><td>FLL</td><td>File Fill</td><td>Fill an array with a constant value</td></tr>
+  </tbody>
+</table>
+
+<h3>I/O Forcing</h3>
+<p>You can <strong>force</strong> I/O points to a specific state for testing and commissioning. Forces override the physical state of the I/O point. A yellow "F" indicator appears in Studio 5000 when forces are active.</p>
+
+<div class="callout critical">
+  <div class="callout-label">Critical Safety Rule</div>
+  <p><strong>Always remove forces before leaving the panel.</strong> Leaving forces active on outputs is a safety hazard — equipment can energize unexpectedly when the machine is put back into service. Develop a checklist habit: "forces cleared" before every handover.</p>
+</div>
+```
+
+  </section>
+
+  <!-- SECTION 21: STUDY ROADMAP -->
+
+  <section>
+    <span class="section-anchor" id="study"></span>
+    <h2><span class="section-num">21</span> Your Study Roadmap</h2>
+
+```
+<p>Given your background (electrical, Siemens HMI, MES/SAP, Python, Rockwell panel experience), here's a structured progression:</p>
+
+<h3>Phase 1 — Foundations (Weeks 1–3)</h3>
+<div class="highlight-box">
+  <div class="hl-title">Start Here</div>
+  <ul class="bullet">
+    <li>Install Studio 5000 Logix Designer (trial license or RA partner access)</li>
+    <li>Create your first project: select 1756-L73, add a 1756-IB16 and 1756-OB16 module</li>
+    <li>Create alias tags for all I/O points</li>
+    <li>Write a start/stop motor circuit with seal-in (your first real program)</li>
+    <li>Add a TON timer for motor run delay</li>
+    <li>Add a CTU counter for cycle counting</li>
+    <li>Test using forced I/O</li>
+  </ul>
+</div>
+
+<h3>Phase 2 — Structured Thinking (Weeks 4–6)</h3>
+<ul class="bullet">
+  <li>Implement a state machine for a 3-station conveyor sequence</li>
+  <li>Create your first UDT (<code>Motor_Type</code>) and use it for 3 motors</li>
+  <li>Create your first AOI (motor function block)</li>
+  <li>Add an analog input with proper 4-20mA scaling</li>
+  <li>Implement a PID loop for simulated level control</li>
+</ul>
+
+<h3>Phase 3 — Networks & Integration (Weeks 7–9)</h3>
+<ul class="bullet">
+  <li>Add a 1756-EN2T to your project and configure remote I/O (simulated)</li>
+  <li>Create a MSG instruction to read tags from a "second" controller</li>
+  <li>Set up Produced/Consumed tags between two controllers</li>
+  <li>Explore FactoryTalk Linx and how to browse the network</li>
+</ul>
+
+<h3>Phase 4 — Production-Grade Skills (Weeks 10–14)</h3>
+<ul class="bullet">
+  <li>Fault handling: write a Controller Fault Handler routine</li>
+  <li>Online editing: practice making and finalizing online changes safely</li>
+  <li>Structured Text: rewrite a calculation routine in ST</li>
+  <li>Downtime Reporting: connect your Portal project to ControlLogix tags via OPC-UA or direct tag read</li>
+  <li>Study the <em>Logix 5000 Controllers General Instructions Reference Manual</em> (RA publication 1756-RM003)</li>
+</ul>
+
+<h3>Certifications Worth Pursuing</h3>
+<table>
+  <thead><tr><th>Cert</th><th>Provider</th><th>Value</th></tr></thead>
+  <tbody>
+    <tr><td>Rockwell Automation Certified Programmer</td><td>Rockwell Automation</td><td>High — directly validates Studio 5000 skills</td></tr>
+    <tr><td>Rockwell Automation Certified Systems Integrator</td><td>Rockwell Automation (company-level)</td><td>Required for SI partner status</td></tr>
+    <tr><td>ISA Certified Control Systems Technician (CCST)</td><td>ISA</td><td>Broad recognition, vendor-agnostic</td></tr>
+    <tr><td>ISA Certified Automation Professional (CAP)</td><td>ISA</td><td>Highest-level, for senior engineers</td></tr>
+  </tbody>
+</table>
+
+<h3>Essential Reference Documents (Free from Rockwell)</h3>
+<ul class="bullet">
+  <li><strong>1756-UM001</strong> — ControlLogix System User Manual</li>
+  <li><strong>1756-RM003</strong> — Logix 5000 General Instructions Reference Manual</li>
+  <li><strong>1756-RM006</strong> — Logix 5000 Motion Instructions Reference Manual</li>
+  <li><strong>ENET-AT002</strong> — EtherNet/IP Network Infrastructure Reference Guide</li>
+  <li><strong>LOGIX-UM001</strong> — Studio 5000 Logix Designer User Manual</li>
+</ul>
+
+<div class="callout tip">
+  <div class="callout-label">Final Advice</div>
+  <p>Your Downtime Reporting Portal is already a strong OT/IT integration portfolio piece. The next-level move is to build a <strong>simulated ControlLogix project</strong> that feeds realistic data to that portal — demonstrating you can work both sides of the OT/IT boundary. That combination is exactly what OT Integration Engineer roles are looking for.</p>
+</div>
+
+<hr class="divider">
+
+<div class="highlight-box">
+  <div class="hl-title">Quick Reference — Most-Used Instructions</div>
+  <p style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--text);line-height:2;">
+    <span style="color:var(--accent)">Contacts:</span> XIC, XIO, OSR, OSF<br>
+    <span style="color:var(--accent)">Coils:</span> OTE, OTL, OTU<br>
+    <span style="color:var(--accent)">Timers:</span> TON, TOF, RTO, RES<br>
+    <span style="color:var(--accent)">Counters:</span> CTU, CTD, RES<br>
+    <span style="color:var(--accent)">Compare:</span> EQU, NEQ, GRT, GEQ, LES, LEQ, LIM<br>
+    <span style="color:var(--accent)">Math:</span> ADD, SUB, MUL, DIV, MOD, CPT, MOV<br>
+    <span style="color:var(--accent)">Program Flow:</span> JSR, RET, JMP, LBL<br>
+    <span style="color:var(--accent)">Comm:</span> MSG<br>
+    <span style="color:var(--accent)">Diagnostics:</span> GSV, SSV<br>
+    <span style="color:var(--accent)">Data:</span> COP, FLL, FAL
+  </p>
+</div>
+```
+
+  </section>
+
+</main>
+</div>
+
+<script>
+  // Progress bar
+  const progress = document.getElementById('progress');
+  window.addEventListener('scroll', () => {
+    const max = document.body.scrollHeight - window.innerHeight;
+    const pct = (window.scrollY / max) * 100;
+    progress.style.width = pct + '%';
+  });
+
+  // Active nav link
+  const sections = document.querySelectorAll('.section-anchor');
+  const navLinks = document.querySelectorAll('nav a');
+
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        const id = entry.target.id;
+        navLinks.forEach(link => {
+          link.classList.remove('active');
+          if (link.getAttribute('href') === '#' + id) {
+            link.classList.add('active');
+          }
+        });
+      }
+    });
+  }, { rootMargin: '-20% 0px -70% 0px' });
+
+  sections.forEach(s => observer.observe(s));
+
+  // Smooth scroll
+  navLinks.forEach(link => {
+    link.addEventListener('click', e => {
+      e.preventDefault();
+      const target = document.querySelector(link.getAttribute('href'));
+      if (target) {
+        window.scrollTo({ top: target.getBoundingClientRect().top + window.scrollY - 60, behavior: 'smooth' });
+      }
+    });
+  });
+</script>
+
+</body>
+</html>
